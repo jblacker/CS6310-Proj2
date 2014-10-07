@@ -54,7 +54,7 @@ public class MasterGui {
 	 */
 	public MasterGui() {
 		initialize();
-		this.spacingValue = 1;
+		this.spacingValue = 15;
 		this.isRunning = false;
 	}
 
@@ -100,7 +100,7 @@ public class MasterGui {
 		spacingSlider.setMaximum(18);
 		spacingSlider.setSnapToTicks(true);
 		spacingSlider.setPaintLabels(true);
-		spacingSlider.setValue(1);
+		spacingSlider.setValue(10);
 		spacingSlider.addChangeListener(new ChangeListener(){
 			
 			@Override
