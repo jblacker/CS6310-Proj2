@@ -5,34 +5,36 @@ public class DataCell {
 	private double latitude;
 	private double longitude;
 	private double height;
-	private double width;
+	private double upperWidth;
+	private double lowerWidth;
 	private double temperature;
 	
 	public DataCell() {
 		this.latitude = 0f;
 		this.longitude = 0f;
 		this.height = 0f;
-		this.width = 0f;
+		this.upperWidth = 0f;
+		this.lowerWidth = 0f;
 		this.temperature = 0f;
 	}
 	
-	public DataCell(double lat, double lon, double height, double width) {
+	public DataCell(double lat, double lon, double height, double uWidth, double lWidth) {
 		this.latitude = lat;
 		this.longitude = lon;
 		this.height = height;
-		this.width = width;
+		this.upperWidth = uWidth;
+		this.lowerWidth = lWidth;
 		this.temperature = 0f;
 	}
 	
-	public DataCell(double lat, double lon, double height, double width, double temp) {
+	public DataCell(double lat, double lon, double height, double uWidth, double lWidth, double temp) {
 		this.latitude = lat;
 		this.longitude = lon;
 		this.height = height;
-		this.width = width;
+		this.upperWidth = uWidth;
+		this.lowerWidth = lWidth;
 		this.temperature = temp;
-	}
-	
-	
+	}	
 
 	public double getLatitude() {
 		return latitude;
@@ -59,11 +61,11 @@ public class DataCell {
 	}
 
 	public double getWidth() {
-		return width;
+		return upperWidth;
 	}
 
 	public void setWidth(double width) {
-		this.width = width;
+		this.upperWidth = width;
 	}
 
 	public double getTemperature() {
@@ -72,6 +74,14 @@ public class DataCell {
 
 	public void setTemperature(double temperature) {
 		this.temperature = temperature;
+	}
+
+	public double getLowerWidth() {
+		return lowerWidth;
+	}
+
+	public void setLowerWidth(double lowerWidth) {
+		this.lowerWidth = lowerWidth;
 	}
 
 }
