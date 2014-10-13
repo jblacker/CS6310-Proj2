@@ -11,12 +11,12 @@ public class Constants {
 	 * 
 	 *  At the beginning of the simulation the Earth's
 	 *  rotation is such that the Sun is directly over the
-	 *  Equator (noon) at the Prime Meridian (longitude 0°)
+	 *  Equator (noon) at the Prime Meridian (longitude 0��)
 	 *  on December 31, 1999. That is, it is the start of a
 	 *  new day, January 1st, 2000 at the International Data
 	 *  Line.
 	 *  
-	 *  The temperature of all grid cells is 288° Kelvin.
+	 *  The temperature of all grid cells is 288�� Kelvin.
 	 */
 	public static final class INITIAL_CONDITIONS {
 		/* Temperature of all grid cells is 288 Kelvin */
@@ -73,4 +73,8 @@ public class Constants {
 		/* -b: Indicates that the Simulation, after producing an updated grid, should instruct the Presentation to consume it */
 		public static final String __B = "-b";
 	}
+	/*
+	 * Radius of the earth in meters.
+	 */
+	public static final double EARTH_RADIUS = 6.371e16;
 }
