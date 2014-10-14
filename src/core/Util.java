@@ -16,7 +16,7 @@ public class Util {
 	/*
 	 * Return a value limited by min and max.
 	 */
-	public static double limitValue(double value, double min, double max) {
+	public static double convertIntoValidRange(double value, double min, double max) {
 		if (value > max) {
 			value = max;
 		}
@@ -27,13 +27,11 @@ public class Util {
 	}
 	
 	/*
-	 * Calculate the area of parallelogram.
+	 * Calculate the area of trapezoid.
 	 */
-	public static double calculateParallelogramArea(double top, double bottom, double height) {
-	    double smaller = Math.min(top, bottom);
-	    double bigger = Math.max(top, bottom);
-	    
-	    return (smaller * height) + (height * (bigger-smaller)/2);
+	public static double calculateTrapezoidArea(
+		double top, double bottom, double height) {
+	    return (top + bottom) / 2 * height;
 	}
 	
 	/*

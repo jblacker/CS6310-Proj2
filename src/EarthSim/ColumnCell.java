@@ -4,22 +4,22 @@ package EarthSim;
 import core.Constants;
 import core.Util;
 
-public class CellColumn {
-    public final double mTopWidth;
-    public final double mBottomWidth;
+public class ColumnCell {
+    public final double mTopLength;
+    public final double mBottomLength;
     public final double mSideLength;
     public final double mSurfaceArea;
     public final Cell[] mCellRow;
     
-    public CellColumn(Simulation simulation, int yIndex) {
+    public ColumnCell(Simulation simulation, int yIndex) {
 	double topLatitude = simulation.cellIndexToLatitude(yIndex);
 	double bottomLatitude = topLatitude + simulation.mSpacing;
 
-	mTopWidth = calculateWidthFromLatitiude(topLatitude, simulation.mSpacing);
-	mBottomWidth = calculateWidthFromLatitiude(bottomLatitude, simulation.mSpacing);
-	mSurfaceArea = Util.calculateParallelogramArea(
-		mTopWidth, mBottomWidth, simulation.mCellHeight);
-	mSideLength = calculateSideLength(mTopWidth, mBottomWidth, simulation.mCellHeight);
+	mTopLength = calculateWidthFromLatitiude(topLatitude, simulation.mSpacing);
+	mBottomLength = calculateWidthFromLatitiude(bottomLatitude, simulation.mSpacing);
+	mSurfaceArea = Util.calculateTrapezoidArea(
+		mTopLength, mBottomLength, simulation.mCellHeight);
+	mSideLength = calculateSideLength(mTopLength, mBottomLength, simulation.mCellHeight);
 	
 	mCellRow = new Cell[simulation.mGridWidth];
 	for (int x = 0; x < simulation.mGridWidth; x++) {

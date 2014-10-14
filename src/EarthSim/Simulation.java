@@ -21,7 +21,7 @@ public class Simulation {
      * the earth. */
     private double[] mSunVector;
     /* Grid of simulation cells. */
-    private CellColumn[][] mGrid;
+    private ColumnCell[] mGrid;
     /* Current temperatures */
     private double[][] mTemperatures;
 
@@ -31,7 +31,7 @@ public class Simulation {
 	if (timestep < 1) {
 	    timestep = 1;
 	}
-	else if (timestep >= 140) {
+	else if (timestep >= 1440) {
 	    timestep = 1440;
 	}
 	mTimestep = timestep;
@@ -54,9 +54,9 @@ public class Simulation {
     public int[] getCellIndex(double latitude, double longitude) {
 	int[] dims = new int[2];
 
-	dims[0] = (int)((180 + Util.limitValue(longitude, -179, 180)) /
+	dims[0] = (int)((180 + Util.convertIntoValidRange(longitude, -179, 180)) /
 		((double) mSpacing));
-	dims[1] = (int)((90 - Util.limitValue(latitude, -89, 90)) /
+	dims[1] = (int)((90 - Util.convertIntoValidRange(latitude, -89, 90)) /
 		((double) mSpacing));
 	
 	return dims;
@@ -66,14 +66,14 @@ public class Simulation {
      * Convert y-index to the latitude of the center of the cell.
      */
     public double cellIndexToLatitude(int yIndex) {
-	return 90 - Util.limitValue(yIndex, 0, mGridHeight-1) * mSpacing;
+	return 90 - Util.convertIntoValidRange(yIndex, 0, mGridHeight-1) * mSpacing;
     }
     
     /*
      * Convert x-index to the longitude of the center of the cell.
      */
     public double cellIndexToLongitude(int xIndex) {
-	return Util.limitValue(xIndex, 0, mGridWidth-1) * mSpacing - 180;
+	return Util.convertIntoValidRange(xIndex, 0, mGridWidth-1) * mSpacing - 180;
     }
     
     /*
@@ -86,13 +86,14 @@ public class Simulation {
 	return normal;
     }
     
-    public double calculateRadiantTempertaure(double prevTemperatre, int[] index) {
+    public double calculateRadiantTempertaure(
+	    double prevTemperatre, int xIndex, int yIndex) {
 	
-	/* Get cell */
-	CellColumn cell = getCellFromIndex(index);
+	/* Get column cell */
+	ColumnCell column = getCellFromIndex(yIndex);
 	
 	/* Calculate the heating from the sun */
-	double Th = Util.zeroedDotProduct(cell.mSurfaceNormal, mSunVector);
+	double Th = Util.zeroedDotProduct(column.mCellRow[xIndex].mSurfaceNormal, mSunVector);
 	
 	/* @TODO: Calculate cooling - some constant based on blahhh... */
 	double Tc = 0;
@@ -100,8 +101,8 @@ public class Simulation {
 	return prevTemperatre + Th - Tc;
     }
     
-    public CellColumn getCellFromIndex(int[] index) {
-	return mGrid[index[0]][index[1]];
+    public ColumnCell getCellFromIndex(int index) {
+	return mGrid[index];
     }
     
     public void processStep() {
