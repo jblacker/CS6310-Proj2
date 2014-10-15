@@ -1,11 +1,11 @@
 package EarthPresentation;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +20,16 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private final Boolean hasInitative;
 	
 	private volatile boolean isCancelled = false; 
+	private volatile boolean sizeChanged = false;
 
 	private Timer refreshTimer;
 	private BufferedImage image;
+	
 	private int canvasHeight;
 	private int canvasWidth;
+	private int newCanvasHeight;
+	private int newCanvasWidth;
+	
 	private boolean running;
 	private long startTime;
 	private long stopTime;
@@ -62,6 +67,10 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		refreshTimer.start();
 		startTime = System.currentTimeMillis();
 		while(!isCancelled) {
+			if(sizeChanged) {
+				updateSize();
+			}
+			
 			generateNextImage();
 			if(hasInitative == null || !hasInitative)
 				Thread.yield();
@@ -163,5 +172,28 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			return System.currentTimeMillis() - startTime; 
 		else
 			return stopTime - startTime;
+	}
+	
+	public synchronized void setSize(Dimension d) {
+		if(this.running) {
+			this.newCanvasHeight = d.height;
+			this.newCanvasWidth = d.width;
+			this.sizeChanged = true;
+		}
+		else {
+			this.canvasHeight = d.height;
+			this.canvasWidth = d.width;
+		}
+	}
+	
+	private void updateSize() {
+		if(this.newCanvasHeight != this.canvasHeight) {
+			this.canvasHeight = this.newCanvasHeight;
+		}
+		if(this.newCanvasWidth != this.canvasWidth) {
+			this.canvasWidth = this.newCanvasWidth;
+		}
+		
+		this.sizeChanged = false;
 	}
 }
