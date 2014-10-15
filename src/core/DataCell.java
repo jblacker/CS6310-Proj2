@@ -60,11 +60,11 @@ public class DataCell {
 		this.height = height;
 	}
 
-	public double getWidth() {
+	public double getUpperWidth() {
 		return upperWidth;
 	}
 
-	public void setWidth(double width) {
+	public void setUpperWidth(double width) {
 		this.upperWidth = width;
 	}
 
