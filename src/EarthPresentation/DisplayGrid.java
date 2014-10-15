@@ -17,7 +17,7 @@ public class DisplayGrid extends JPanel implements Observer {
 	private final DisplayModel model;
 	
 	public DisplayGrid(final DisplayModel model, Dimension initialSize) {
-		this.setOpaque(true);
+		this.setOpaque(false);
 		this.model = model;
 		this.setPreferredSize(initialSize);
 		this.addComponentListener(new ComponentAdapter() {
