@@ -123,9 +123,9 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			
 			graphics.setColor(cell.getColor());
 			graphics.fillPolygon(cellPolygon);
-			
-			this.image = nextImage;
 		}
+		
+		this.image = nextImage;
 	}
 	
 	private Point LatLongToMercatorPoint(GeoCoordinate coords) {
@@ -139,6 +139,16 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		return new Point((int)x, (int)y);
 	}
 	
+	private void updateSize() {
+		if(this.newCanvasHeight != this.canvasHeight) {
+			this.canvasHeight = this.newCanvasHeight;
+		}
+		if(this.newCanvasWidth != this.canvasWidth) {
+			this.canvasWidth = this.newCanvasWidth;
+		}
+		
+		this.sizeChanged = false;
+	}
 	public synchronized BufferedImage getImage() {
 		return this.image;
 	}
@@ -184,16 +194,5 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			this.canvasHeight = d.height;
 			this.canvasWidth = d.width;
 		}
-	}
-	
-	private void updateSize() {
-		if(this.newCanvasHeight != this.canvasHeight) {
-			this.canvasHeight = this.newCanvasHeight;
-		}
-		if(this.newCanvasWidth != this.canvasWidth) {
-			this.canvasWidth = this.newCanvasWidth;
-		}
-		
-		this.sizeChanged = false;
 	}
 }
