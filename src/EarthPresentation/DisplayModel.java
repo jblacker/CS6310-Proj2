@@ -202,8 +202,10 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private void generateNextSolarImage(double solarLongitude) {
 		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, solarCanvasHeight, BufferedImage.TYPE_3BYTE_BGR);
 		Graphics2D graphics = nextImage.createGraphics();
+		
 		double x = CalculateSolarMercatorPoint(solarLongitude).getX();
-		Shape sunCircle = new Ellipse2D.Double(this.solarCanvasHeight, this.solarCanvasHeight, x, 0);
+		double radius = this.solarCanvasHeight / 2;
+		Shape sunCircle = new Ellipse2D.Double(this.solarCanvasHeight, this.solarCanvasHeight, x - radius, 0);
 		
 		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		graphics.setColor(Color.YELLOW);
