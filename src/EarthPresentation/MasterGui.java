@@ -28,10 +28,13 @@ public class MasterGui {
 	private JSlider timeSlider;
 	private JSlider refreshSlider;
 	private JButton simulateBtn;
+	private JButton pauseBtn;
+	private boolean isPaused;
 	private boolean isRunning;
 	private JPanel simulationPanel;
 	
-	
+	private DisplayGrid view;
+	private DisplayModel model;
 
 	/**
 	 * Launch the application.
@@ -214,13 +217,14 @@ public class MasterGui {
 		simulateBtn.addActionListener(new ActionListener(){
 			
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent e) {
 				if(isRunning) {
 					isRunning = false;
 					simulateBtn.setText("Start");
 					spacingSlider.setEnabled(true);
 					timeSlider.setEnabled(true);
 					refreshSlider.setEnabled(true);
+					pauseBtn.setEnabled(false);
 					//TODO: STOP SIMULATION!
 					
 				}
@@ -230,6 +234,7 @@ public class MasterGui {
 					spacingSlider.setEnabled(false);
 					timeSlider.setEnabled(false);
 					refreshSlider.setEnabled(false);
+					pauseBtn.setEnabled(true);
 					//TODO: START SIMULATION!
 				}
 			}
@@ -240,10 +245,38 @@ public class MasterGui {
 		gbc_simulateBtn.gridy = 1;
 		controlPanel.add(simulateBtn, gbc_simulateBtn);
 		
+		pauseBtn = new JButton("Pause");
+		pauseBtn.setEnabled(false);
+		pauseBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(isPaused){
+					isPaused = false;
+					pauseBtn.setText("Pause");
+					model.resume();
+				}
+				else {
+					isPaused = true;
+					pauseBtn.setText("Resume");
+					model.pause();
+				}				
+			}
+		});
+		
+		GridBagConstraints gbc_pauseBtn = new GridBagConstraints();
+		gbc_pauseBtn.insets = new Insets(2,2,5,5);
+		gbc_pauseBtn.gridx = 1;
+		gbc_pauseBtn.gridy = 2;
+		controlPanel.add(pauseBtn, gbc_pauseBtn);
+		
 		simulationPanel = new JPanel();
 		frame.getContentPane().add(simulationPanel, BorderLayout.CENTER);
 		simulationPanel.setLayout(new BorderLayout(0, 0));
-		
+	}
+	
+	private void Reset() {
+		//TODO: Reset View, Model, & Button Contexts
 	}
 
 }

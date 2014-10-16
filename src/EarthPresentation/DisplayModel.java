@@ -28,6 +28,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	
 	private volatile boolean isCancelled = false; 
 	private volatile boolean sizeChanged = false;
+	private volatile boolean pauseRequested = false;
 
 	private Timer refreshTimer;
 	private BufferedImage temperatureMapImage;
@@ -84,6 +85,17 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			}
 			
 			generateNextImageSet();
+			
+			while(pauseRequested) {
+				try{
+					Thread.sleep(500);
+					Thread.yield();
+				}
+				catch(InterruptedException ex) {
+					break;
+				}
+			}
+		
 			if(hasInitative == null || !hasInitative)
 				Thread.yield();
 			else {
@@ -253,6 +265,14 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	
 	public synchronized void stop() {
 		isCancelled = true;		
+	}
+	
+	public synchronized void pause() {
+		pauseRequested = true;
+	}
+	
+	public synchronized void resume() {
+		pauseRequested = false;
 	}
 	
 	public synchronized void setRefreshRate(int ms) {
