@@ -1,19 +1,26 @@
 package EarthPresentation;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 
 import javax.swing.Timer;
 
 import core.DataCell;
+import core.SimulationState;
 
 public class DisplayModel extends Observable implements Runnable, ActionListener{
 
@@ -23,10 +30,15 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private volatile boolean sizeChanged = false;
 
 	private Timer refreshTimer;
-	private BufferedImage image;
+	private BufferedImage temperatureMapImage;
+	private BufferedImage solarImage;
+	private BufferedImage solarOverlay;
+	private BufferedImage compositeMap;
 	
-	private int canvasHeight;
-	private int canvasWidth;
+	private int mapCanvasHeight;
+	private int mapCanvasWidth;
+	private int solarCanvasHeight;
+	
 	private int newCanvasHeight;
 	private int newCanvasWidth;
 	
@@ -37,16 +49,16 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private int refreshRate;
 	
 	public DisplayModel(int height, int width, Boolean initiative) {
-		this.canvasHeight = height;
-		this.canvasWidth = width;
+		this.mapCanvasHeight = height;
+		this.mapCanvasWidth = width;
 		this.refreshRate = 1000;
 		this.refreshTimer = new Timer(refreshRate, this); //default?
 		this.timeStep = 1; //default?
 		this.hasInitative = initiative;
 	}
 	public DisplayModel(int height, int width, int timeStep, Boolean initiative) {
-		this.canvasHeight = height;
-		this.canvasWidth = width;
+		this.mapCanvasHeight = height;
+		this.mapCanvasWidth = width;
 		this.timeStep = timeStep;
 		this.refreshRate = 1000; 
 		this.refreshTimer = new Timer(refreshRate, this);
@@ -54,8 +66,8 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	}
 	
 	public DisplayModel(int height, int width, int timeStep, int refreshRate, Boolean initiative) {
-		this.canvasHeight = height;
-		this.canvasWidth = width;
+		this.mapCanvasHeight = height;
+		this.mapCanvasWidth = width;
 		this.timeStep = timeStep;
 		this.refreshRate = refreshRate;
 		this.refreshTimer = new Timer(refreshRate, this);
@@ -71,7 +83,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 				updateSize();
 			}
 			
-			generateNextImage();
+			generateNextImageSet();
 			if(hasInitative == null || !hasInitative)
 				Thread.yield();
 			else {
@@ -88,12 +100,8 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		running = false;
 	}
 	
-	public void generateNextImage() {
-		List<DataCell> simData = null; //TODO: THIS IS A STUB! INITIALIZE IN if.else BELOW
-		List<DisplayCell> displayCells = new ArrayList<DisplayCell>();
-		BufferedImage nextImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_3BYTE_BGR);
-		Graphics2D graphics = nextImage.createGraphics();
-		
+	public void generateNextImageSet() {
+		SimulationState simState = null; //STUB ONLY! THIS NEEDS TO BE INITIALIZED BELOW INSTEAD
 		if(hasInitative == null){
 			//block wait for next simulation dataset
 		}
@@ -101,16 +109,37 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			//asks for next simulation dataset
 		}
 		else {
-			// not sure yet (simulation has initative)
+			// not sure yet (simulation has initiative)
 		}
+		
+		List<DisplayCell> cells = generateDisplayCells(simState.getCells());
+		generateNextMapImage(cells);
+		generateSolarOverlayImage(simState.getSunLongitude(), cells);
+		generateCompositeMapImage();
+		generateNextSolarImage(simState.getSunLongitude());
+	}
+	
+	private List<DisplayCell> generateDisplayCells(List<DataCell> simData) {
+		List<DisplayCell> displayCells = new ArrayList<DisplayCell>();
 		
 		//calculate latitude & longitude for ALL cell points
 		for(DataCell cell : simData) {
 			displayCells.add(new DisplayCell(cell));
 		}
 		
+		return displayCells;
+	}
+	
+	private void generateNextMapImage(List<DisplayCell> cellData) {
+		
+		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D graphics = nextImage.createGraphics();		
+		
+		//set transparent to use as overlay
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 2.0f));
+		
 		//create polygon primitives
-		for(DisplayCell cell : displayCells) {
+		for(DisplayCell cell : cellData) {
 			Polygon cellPolygon = new Polygon();
 			Point ne = LatLongToMercatorPoint(cell.getNeCorner());
 			Point nw = LatLongToMercatorPoint(cell.getNwCorner());
@@ -125,32 +154,99 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			graphics.fillPolygon(cellPolygon);
 		}
 		
-		this.image = nextImage;
+		this.temperatureMapImage = nextImage;
 	}
 	
-	private Point LatLongToMercatorPoint(GeoCoordinate coords) {
-		double x = (coords.getLongitude() + 180 ) * (this.canvasWidth / 360);
+	private void generateSolarOverlayImage(double solarLongitude, List<DisplayCell> cellData) {
+		//filter out cells under sun
+		List<DisplayCell> sunOverheadCells = new LinkedList<DisplayCell>();
+		for(DisplayCell cell : cellData) {
+			if(DisplayCell.isLongitudeInCell(solarLongitude, cell))
+				sunOverheadCells.add(cell);
+		}
+		
+		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D graphics = nextImage.createGraphics();
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+		for(DisplayCell cell : sunOverheadCells) {
+			Polygon cellPolygon = new Polygon();
+			Point ne = LatLongToMercatorPoint(cell.getNeCorner());
+			Point nw = LatLongToMercatorPoint(cell.getNwCorner());
+			Point se = LatLongToMercatorPoint(cell.getSeCorner());
+			Point sw = LatLongToMercatorPoint(cell.getSwCorner());
+			cellPolygon.addPoint(ne.x, ne.y);
+			cellPolygon.addPoint(nw.x, nw.y);
+			cellPolygon.addPoint(se.x, se.y);
+			cellPolygon.addPoint(sw.x, sw.y);
+			
+			graphics.setColor(Color.YELLOW);
+			graphics.fillPolygon(cellPolygon);
+		}
+		
+		this.solarOverlay = nextImage;
+	}
+	
+	private void generateCompositeMapImage() {
+		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D graphics = nextImage.createGraphics();		
+		
+		//set transparent to use as overlay
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 2.0f));
+
+		graphics.drawImage(this.temperatureMapImage, 0, 0, null);
+		graphics.drawImage(this.solarOverlay, 0, 0, null);
+		
+		this.compositeMap = nextImage;
+	}
+	
+	private void generateNextSolarImage(double solarLongitude) {
+		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, solarCanvasHeight, BufferedImage.TYPE_3BYTE_BGR);
+		Graphics2D graphics = nextImage.createGraphics();
+		double x = CalculateSolarMercatorPoint(solarLongitude).getX();
+		Shape sunCircle = new Ellipse2D.Double(this.solarCanvasHeight, this.solarCanvasHeight, x, 0);
+		
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		graphics.setColor(Color.YELLOW);
+		graphics.fill(sunCircle);
+		
+		this.solarImage = nextImage;
+	}
+	
+	public Point LatLongToMercatorPoint(GeoCoordinate coords) {
+		double x = (coords.getLongitude() + 180 ) * (this.mapCanvasWidth / 360);
 		x = Math.floor(x);
 		double latRadians = (coords.getLatitude() * Math.PI) / 180;
 		double mercScaled = Math.log(Math.tan(Math.PI / 4) + (latRadians/2));
-		double y = (this.canvasHeight / 2) - ((this.canvasWidth * mercScaled) / (Math.PI * 2));
+		double y = (this.mapCanvasHeight / 2) - ((this.mapCanvasWidth * mercScaled) / (Math.PI * 2));
 		y = Math.floor(y);
 		
 		return new Point((int)x, (int)y);
 	}
 	
+	public Point CalculateSolarMercatorPoint(double longitude) {
+		double x = (longitude + 180) * (this.mapCanvasWidth / 360);
+		x = Math.floor(x);
+		
+		return new Point((int)x, 0);
+	}
+	
 	private void updateSize() {
-		if(this.newCanvasHeight != this.canvasHeight) {
-			this.canvasHeight = this.newCanvasHeight;
+		if(this.newCanvasHeight != this.mapCanvasHeight) {
+			this.mapCanvasHeight = this.newCanvasHeight;
+			this.solarCanvasHeight = this.newCanvasHeight / 5;
 		}
-		if(this.newCanvasWidth != this.canvasWidth) {
-			this.canvasWidth = this.newCanvasWidth;
+		if(this.newCanvasWidth != this.mapCanvasWidth) {
+			this.mapCanvasWidth = this.newCanvasWidth;
 		}
 		
 		this.sizeChanged = false;
 	}
-	public synchronized BufferedImage getImage() {
-		return this.image;
+	public synchronized BufferedImage getMapImage() {
+		return this.compositeMap;
+	}
+	
+	public synchronized BufferedImage getSolarImage() {
+		return this.solarImage;
 	}
 	
 	public synchronized void stop() {
@@ -191,8 +287,9 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			this.sizeChanged = true;
 		}
 		else {
-			this.canvasHeight = d.height;
-			this.canvasWidth = d.width;
+			this.mapCanvasHeight = d.height;
+			this.mapCanvasWidth = d.width;
+			this.solarCanvasHeight = d.height / 5;
 		}
 	}
 }
