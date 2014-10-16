@@ -116,4 +116,59 @@ public class DisplayCell {
 		
 		cellColor = new Color(red, green, blue);
 	}
+	
+	public static boolean isLongitudeInCell(double lon, DisplayCell cell) {
+		boolean useNorth = cell.widthBottom < cell.widthTop;
+				
+		if(useNorth) {
+			if(cell.neCorner.getLongitude() > 0 && cell.nwCorner.getLongitude() > 0) {
+				//Eastern Hemispheres
+				if(cell.neCorner.getLongitude() >= lon && cell.nwCorner.getLongitude() <= lon)
+					return true;
+				else
+					return false;
+			}
+			else if (cell.neCorner.getLongitude() < 0 && cell.nwCorner.getLongitude() < 0){
+				//Western Hemispheres
+				if(cell.neCorner.getLongitude() <= lon && cell.nwCorner.getLongitude() >= lon)
+					return true;
+				else
+					return false;
+			}
+			else {
+				//Straddling Prime Meridian
+				if(lon > 0 && cell.nwCorner.getLongitude() <= lon )
+					return true;
+				else if(lon < 0 && cell.neCorner.getLongitude() >= lon)
+					return true;
+				else
+					return false;
+			}
+		}
+		else {
+			if(cell.seCorner.getLongitude() > 0 && cell.swCorner.getLongitude() > 0) {
+				//Eastern Hemispheres
+				if(cell.seCorner.getLongitude() >= lon && cell.swCorner.getLongitude() <= lon)
+					return true;
+				else
+					return false;
+			}
+			else if (cell.seCorner.getLongitude() < 0 && cell.swCorner.getLongitude() < 0){
+				//Western Hemispheres
+				if(cell.seCorner.getLongitude() <= lon && cell.swCorner.getLongitude() >= lon)
+					return true;
+				else
+					return false;
+			}
+			else {
+				//Straddling Prime Meridian
+				if(lon > 0 && cell.swCorner.getLongitude() <= lon )
+					return true;
+				else if(lon < 0 && cell.seCorner.getLongitude() >= lon)
+					return true;
+				else
+					return false;
+			}
+		}
+	}
 }
