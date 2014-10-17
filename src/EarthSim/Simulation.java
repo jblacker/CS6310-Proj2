@@ -52,13 +52,10 @@ public class Simulation {
      * temperature value array.
      */
     public int[] getCellIndex(double latitude, double longitude) {
-	int[] dims = new int[2];
-
-	dims[0] = (int)((180 + Util.convertIntoValidRange(longitude, -179, 180)) /
-		((double) mSpacing));
-	dims[1] = (int)((90 - Util.convertIntoValidRange(latitude, -89, 90)) /
-		((double) mSpacing));
-	
+	int[] dims = {
+		(int) Math.floor(longitude / (double) mSpacing) + mGridWidth / 2,
+		(int) Math.floor(latitude / (double) mSpacing) + mGridWidth / 2
+	};
 	return dims;
     }
     
@@ -76,6 +73,36 @@ public class Simulation {
 	return Util.convertIntoValidRange(xIndex, 0, mGridWidth-1) * mSpacing - 180;
     }
     
+    /* Calculate West neighbor. */
+    public void getWestNeighbor(int[] index) {
+	index[0] = (index[0] + 1) % mGridWidth;
+    }
+
+    /* Calculate West neighbor. */
+    public void getEastNeighbor(int[] index) {
+	index[0] = (index[0] - 1 + mGridWidth) % mGridWidth;
+    }
+
+    /* Calculate North neighbor. */
+    public void getNorthNeighbor(int[] index) {
+	if (index[1] < mGridHeight - 1) {
+	    index[1]++;
+	}
+	else {
+	    index[0] = (index[0] + mGridWidth / 2) % mGridWidth;
+	}
+    }
+
+    /* Calculate South neighbor. */
+    public void getSouthNeighbor(int[] index) {
+	if (index[1] > 0) {
+	    index[1]--;
+	}
+	else {
+	    index[0] = (index[0] + mGridWidth / 2) % mGridWidth;
+	}
+    }
+
     /*
      * Calculate the normal vector for a given cell.
      */
