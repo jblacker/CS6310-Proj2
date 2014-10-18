@@ -76,5 +76,18 @@ public class Constants {
 	/*
 	 * Radius of the earth in meters.
 	 */
-	public static final double EARTH_RADIUS = 6.371e16;
+	public static final double EARTH_RADIUS = 6.371e6f;
+	/*
+	 * Circumference of the earth in meters.
+	 */
+	public static final double EARTH_CIRCUMFERENCE = 4.003014e7f;
+	/*
+	 * Surface area of the earth in square meters.
+	 */
+	public static final double EARTH_SURFACE_AREA = 5.10072e14f;
+	/*
+	 * Average temperature of the earth in Kelvin.
+	 */
+	public static final double AVERAGE_EARTH_TEMPERATURE = 288f;
+	
 }

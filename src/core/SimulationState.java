@@ -6,10 +6,12 @@ public class SimulationState {
 
 	private List<DataCell> cells;
 	private double sunLongitude;
+	private int runningTime;
 	
-	public SimulationState(List<DataCell> cells, double sunLong) {
+	public SimulationState(List<DataCell> cells, double sunLong, int runningTime) {
 		this.cells = cells;
 		this.sunLongitude = sunLong;
+		this.runningTime = runningTime;
 	}
 
 	public List<DataCell> getCells() {
@@ -26,6 +28,14 @@ public class SimulationState {
 
 	public void setSunLongitude(double sunLongitude) {
 		this.sunLongitude = sunLongitude;
+	}
+
+	public int getRunningTime() {
+		return runningTime;
+	}
+
+	public void setRunningTime(int runningTime) {
+		this.runningTime = runningTime;
 	}
 
 }

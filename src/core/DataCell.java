@@ -1,40 +1,101 @@
 package core;
 
-public class DataCell {
+public class DataCell implements Cloneable {
 	
 	private double latitude;
 	private double longitude;
 	private double height;
+	private double sideLength;
 	private double upperWidth;
 	private double lowerWidth;
+	private double perimeter;
+	private double area;
 	private double temperature;
 	
 	public DataCell() {
 		this.latitude = 0f;
 		this.longitude = 0f;
 		this.height = 0f;
+		this.sideLength = 0f;
 		this.upperWidth = 0f;
 		this.lowerWidth = 0f;
+		this.perimeter = 0f;
+		this.area = 0f;
 		this.temperature = 0f;
 	}
 	
-	public DataCell(double lat, double lon, double height, double uWidth, double lWidth) {
+	public DataCell(DataCell other) {
+		this.latitude = other.latitude;
+		this.longitude = other.longitude;
+		this.height = other.height;
+		this.sideLength = other.sideLength;
+		this.upperWidth = other.upperWidth;
+		this.lowerWidth = other.lowerWidth;
+		this.perimeter = other.perimeter;
+		this.area = other.area;
+		this.temperature = other.temperature;
+	}
+	
+	public DataCell(double lat, double lon, double height, double sideLength, double uWidth, double lWidth) {
 		this.latitude = lat;
 		this.longitude = lon;
 		this.height = height;
+		this.sideLength = sideLength;
 		this.upperWidth = uWidth;
 		this.lowerWidth = lWidth;
+		this.perimeter = calculatePerimeter();
+		this.area = calculateArea();
 		this.temperature = 0f;
 	}
 	
-	public DataCell(double lat, double lon, double height, double uWidth, double lWidth, double temp) {
+	public DataCell(double lat, double lon, double height, double sideLength, double uWidth, double lWidth, double temp) {
 		this.latitude = lat;
 		this.longitude = lon;
 		this.height = height;
+		this.sideLength = sideLength;
 		this.upperWidth = uWidth;
 		this.lowerWidth = lWidth;
+		this.perimeter = calculatePerimeter();
+		this.area = calculateArea();
 		this.temperature = temp;
-	}	
+	}
+
+	public DataCell(double lat, double lon, int spacing, double temp) {
+		this.latitude = lat;
+		this.longitude = lon;
+		this.sideLength = calculateSideLength(spacing);
+		this.upperWidth = calculateUpperWidth(spacing);
+		this.lowerWidth = calculateLowerWidth();
+		this.height = calculateHeight();
+		this.perimeter = calculatePerimeter();
+		this.area = calculateArea();
+		this.temperature = temp;
+	}
+
+	private double calculateSideLength(int spacing) {
+		return (spacing / 360f) * Constants.EARTH_CIRCUMFERENCE;
+	}
+
+	private double calculateUpperWidth(int spacing) {
+		return Math.cos(2f * Math.PI * (this.latitude + spacing) / 360) * this.sideLength;
+	}
+	
+	private double calculateLowerWidth() {
+		return Math.cos(2f * Math.PI * this.latitude / 360) * this.sideLength;
+	}
+
+	private double calculateHeight() {
+		return Math.sqrt(Math.pow(this.sideLength, 2)
+				- Math.pow(this.lowerWidth - this.upperWidth, 2) / 4f);
+	}
+
+	private double calculatePerimeter() {
+		return 2f * this.sideLength + this.upperWidth + this.lowerWidth;
+	}
+	
+	private double calculateArea() {
+		return (this.upperWidth + this.lowerWidth) / 2f * this.height;
+	}
 
 	public double getLatitude() {
 		return latitude;
@@ -58,6 +119,8 @@ public class DataCell {
 
 	public void setHeight(double height) {
 		this.height = height;
+		this.perimeter = calculatePerimeter();
+		this.area = calculateArea();
 	}
 
 	public double getUpperWidth() {
@@ -66,6 +129,8 @@ public class DataCell {
 
 	public void setUpperWidth(double width) {
 		this.upperWidth = width;
+		this.perimeter = calculatePerimeter();
+		this.area = calculateArea();
 	}
 
 	public double getTemperature() {
@@ -82,6 +147,15 @@ public class DataCell {
 
 	public void setLowerWidth(double lowerWidth) {
 		this.lowerWidth = lowerWidth;
+		this.perimeter = calculatePerimeter();
+		this.area = calculateArea();
 	}
 
+	public double getPerimeter() {
+		return this.perimeter;
+	}
+	
+	public double getArea() {
+		return this.area;
+	}
 }
