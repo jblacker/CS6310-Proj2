@@ -171,17 +171,35 @@ public class SimulationGrid {
 			for (int y = 0; y < mHeight; y++) {
 				DataCell cell = getCellFromIndex(x, y);
 				
+				/* Calculate attenuation. */
+				double attenuation = calculateAttenuation(
+						cell.getLatitude(),
+						cell.getLongitude(),
+						sunLongitude);
+				
 				/* Calculate the heating from the sun */
-				double Th = 0f;
+				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * attenuation;
 		
 				/* Calculate cooling. */
-				//double beta = numCells * cell.getArea() / Constants.EARTH_SURFACE_AREA;
-				//double Tc = beta * Tsun;
-				//double Tc = cell.getArea() / Constants.EARTH_SURFACE_AREA;
-				double Tc = 0f;
+				double numCells = mWidth * mHeight;
+				double beta = numCells * cell.getArea() / Constants.EARTH_SURFACE_AREA;
+				double Tc = beta * Constants.AVERAGE_EARTH_TEMPERATURE;
 		
 				cell.setTemperature(cell.getTemperature() + Th - Tc);
 			}
 		}
+	}
+	
+	/* Calculate attenuation. */
+	private double calculateAttenuation(double lat, double lon, double sunLon) {
+		double d;
+		if (lon >= 0)
+			d = Math.abs(360 - lon - sunLon);
+		else
+			d = Math.abs(-lon - sunLon);
+		if (d < 90)
+			return d * Math.cos(2f * Math.PI / 360f * lat);
+		else
+			return 0;
 	}
 }
