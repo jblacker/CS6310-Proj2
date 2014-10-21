@@ -126,8 +126,8 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	}
 	
 	public void generateNextImageSet() {
-		SimulationState simState = null; //STUB ONLY! THIS NEEDS TO BE INITIALIZED BELOW INSTEAD
-		if(hasInitative == null){
+		SimulationState simState;
+		if(hasInitative == null || !hasInitative){
 			try{
 				simState = Config.getInstance().getBuffer().take();
 			}
@@ -135,11 +135,10 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 				return;
 			}
 		}
-		else if(hasInitative){
-			//asks for next simulation dataset
-		}
 		else {
-			// not sure yet (simulation has initiative)
+			simState = Config.getInstance().getBuffer().poll();
+			if(simState == null)
+				return;
 		}
 		
 		List<DisplayCell> cells = generateDisplayCells(simState.getCells());
