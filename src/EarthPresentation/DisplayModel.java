@@ -19,6 +19,7 @@ import java.util.Observable;
 
 import javax.swing.Timer;
 
+import core.Config;
 import core.DataCell;
 import core.SimulationState;
 
@@ -57,6 +58,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		this.timeStep = 1; //default?
 		this.hasInitative = initiative;
 	}
+	
 	public DisplayModel(int height, int width, int timeStep, Boolean initiative) {
 		this.mapCanvasHeight = height;
 		this.mapCanvasWidth = width;
@@ -75,6 +77,16 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		this.hasInitative = initiative;
 	}
 	
+	public void consume() {
+		Config config = Config.getInstance();
+		while(!config.getBuffer().isEmpty()) {
+			if(sizeChanged) {
+				updateSize();
+			}
+			generateNextImageSet();
+		}
+	}
+	
 	public void run() {
 		running = true;
 		refreshTimer.start();
@@ -83,8 +95,9 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			if(sizeChanged) {
 				updateSize();
 			}
-			
 			generateNextImageSet();
+			
+			}
 			
 			while(pauseRequested) {
 				try{
@@ -103,19 +116,24 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 					Thread.sleep(refreshRate);
 				}
 				catch(InterruptedException ex) {
-					break;
+					//do nothing?
 				}
 			}
-		}
-		stopTime = System.currentTimeMillis();
-		refreshTimer.stop();
-		running = false;
+			
+			stopTime = System.currentTimeMillis();
+			refreshTimer.stop();
+			running = false;
 	}
 	
 	public void generateNextImageSet() {
 		SimulationState simState = null; //STUB ONLY! THIS NEEDS TO BE INITIALIZED BELOW INSTEAD
 		if(hasInitative == null){
-			//block wait for next simulation dataset
+			try{
+				simState = Config.getInstance().getBuffer().take();
+			}
+			catch(InterruptedException ex) {
+				return;
+			}
 		}
 		else if(hasInitative){
 			//asks for next simulation dataset
