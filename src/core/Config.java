@@ -74,6 +74,8 @@ public class Config {
 	private final EnumSet<ThreadedEnum> threadingFlags;
 	private final InitiativeEnum initiative;
 	
+	private boolean initativeFlag;
+	
 	private Config(int bufferSize, EnumSet<ThreadedEnum> threading, InitiativeEnum initiative) {
 		if(bufferSize == 0)
 			bufferSize = 1;
@@ -96,6 +98,20 @@ public class Config {
 
 	public synchronized InitiativeEnum getInitiative() {
 		return initiative;
+	}
+	
+	public synchronized boolean requested() {
+		return initativeFlag;
+	}
+	
+	public synchronized void completed() {
+		if(initativeFlag)
+			initativeFlag = false;
+	}
+	
+	public synchronized void request() {
+		if(!initativeFlag)
+			initativeFlag = true;
 	}
 
 }

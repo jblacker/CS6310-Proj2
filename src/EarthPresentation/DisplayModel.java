@@ -21,7 +21,9 @@ import javax.swing.Timer;
 
 import core.Config;
 import core.DataCell;
+import core.InitiativeEnum;
 import core.SimulationState;
+import core.ThreadedEnum;
 
 public class DisplayModel extends Observable implements Runnable, ActionListener{
 
@@ -83,46 +85,106 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			if(sizeChanged) {
 				updateSize();
 			}
+			
 			generateNextImageSet();
 		}
 	}
 	
 	public void run() {
+		Config config = Config.getInstance();
 		running = true;
 		refreshTimer.start();
 		startTime = System.currentTimeMillis();
-		while(!isCancelled) {
-			if(sizeChanged) {
-				updateSize();
-			}
-			generateNextImageSet();
-			
-			}
-			
-			while(pauseRequested) {
-				try{
-					Thread.sleep(500);
-					Thread.yield();
+		if(config.getInitiative() == InitiativeEnum.MASTER_CONTROL){
+			while(!isCancelled){
+				if(sizeChanged) {
+					updateSize();
 				}
-				catch(InterruptedException ex) {
-					break;
+				generateNextImageSet();
+			}
+		}
+		else if(config.getInitiative() == InitiativeEnum.PRESENTATION 
+				&& config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)) {
+			while(!isCancelled){
+				if(sizeChanged) {
+					updateSize();
+				}
+				
+				if(config.requested() && config.getBuffer().isEmpty())
+					config.completed();
+				else if(config.requested() && !config.getBuffer().isEmpty())
+					generateNextImageSet();
+				else {
+					try{
+						Thread.sleep(50);
+					}
+					catch(InterruptedException ex){
+						break;
+					}
+				}
+			}	
+		}
+		else if(config.getInitiative() == InitiativeEnum.SIMULATION) {
+			while(!isCancelled){
+				if(sizeChanged) {
+					updateSize();
+				}
+				if(config.requested()){
+					generateNextImageSet();
+				}
+				else {
+					try{
+						Thread.sleep(50);
+					}
+					catch(InterruptedException ex){
+						break;
+					}
 				}
 			}
-		
-			if(hasInitative == null || !hasInitative)
+		}	
+		else if(config.getInitiative() == InitiativeEnum.PRESENTATION
+				&& config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)){
+			config.request();
+			while(!isCancelled){
+				if(config.getBuffer().isEmpty()){
+					config.request();
+					try{
+						Thread.sleep(50);
+					}
+					catch(InterruptedException ex){
+						break;
+					}
+				}
+				else {
+					generateNextImageSet();
+				}
+			}
+		}
+		else if(config.getInitiative() == InitiativeEnum.PRESENTATION){
+			//construct producer object
+			while(!isCancelled){
+				//ask producer to produce
+				while(!config.getBuffer().isEmpty()) {
+					generateNextImageSet();
+				}
+			}
+		}	
+			
+		stopTime = System.currentTimeMillis();
+		refreshTimer.stop();
+		running = false;
+	}
+	
+	public void checkPause() {
+		while(pauseRequested) {
+			try{
+				Thread.sleep(500);
 				Thread.yield();
-			else {
-				try {
-					Thread.sleep(refreshRate);
-				}
-				catch(InterruptedException ex) {
-					//do nothing?
-				}
 			}
-			
-			stopTime = System.currentTimeMillis();
-			refreshTimer.stop();
-			running = false;
+			catch(InterruptedException ex) {
+				break;
+			}
+		}
 	}
 	
 	public void generateNextImageSet() {
