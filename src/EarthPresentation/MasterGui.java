@@ -286,9 +286,9 @@ public class MasterGui {
 		frame.getContentPane().add(simulationPanel, BorderLayout.CENTER);
 		simulationPanel.setLayout(new BorderLayout(0, 0));
 		Boolean initiative = null;
-		if(Config.getInstance().getInitiative() == InitiativeEnum.PRESENTATION)
+		if(Config.getInstance().getInitiative().equals(InitiativeEnum.PRESENTATION))
 			initiative = true;
-		else if(Config.getInstance().getInitiative() == InitiativeEnum.SIMULATION)
+		else if(Config.getInstance().getInitiative().equals(InitiativeEnum.SIMULATION))
 			initiative = false;
 		
 		model = new DisplayModel(simulationPanel.getHeight(), simulationPanel.getWidth(), initiative);
@@ -316,7 +316,7 @@ public class MasterGui {
 				simulation.resume();
 			if(presentation != null)
 				model.resume();
-			if(Config.getInstance().getThreadingFlags() != EnumSet.allOf(ThreadedEnum.class))
+			if(!Config.getInstance().getThreadingFlags().equals(EnumSet.allOf(ThreadedEnum.class)))
 				simulate();
 		}
 		else{
@@ -332,21 +332,21 @@ public class MasterGui {
 		Config config = Config.getInstance();
 		//set non initiative objects
 		if(!isPaused){
-			if(config.getInitiative() == InitiativeEnum.PRESENTATION)
+			if(config.getInitiative().equals(InitiativeEnum.PRESENTATION))
 				config.setNonInitativeObject(simulation);
-			else if(config.getInitiative() == InitiativeEnum.SIMULATION)
+			else if(config.getInitiative().equals(InitiativeEnum.SIMULATION))
 				config.setNonInitativeObject(model);
 		}
 		else
 			isPaused = false;
 		
-		if(config.getThreadingFlags() == EnumSet.allOf(ThreadedEnum.class)){
+		if(config.getThreadingFlags().equals(EnumSet.allOf(ThreadedEnum.class))){
 			Thread sim = new Thread(simulation);
 			Thread presentation = new Thread(model);
 			sim.start();
 			presentation.start();
 		}
-		else if(config.getThreadingFlags() == EnumSet.noneOf(ThreadedEnum.class)){					
+		else if(config.getThreadingFlags().equals(EnumSet.noneOf(ThreadedEnum.class))){					
 			while(isRunning) {
 				if(isPaused)
 					break;
@@ -365,7 +365,7 @@ public class MasterGui {
 				Thread.yield();
 			}
 		}
-		else if(config.getThreadingFlags() == EnumSet.of(ThreadedEnum.PRESENTATION)) {
+		else if(config.getThreadingFlags().equals(EnumSet.of(ThreadedEnum.PRESENTATION))) {
 			Thread presentation = new Thread(model);
 			presentation.start();
 			if(config.getInitiative() != InitiativeEnum.PRESENTATION){
@@ -377,7 +377,7 @@ public class MasterGui {
 				}
 			}
 		}
-		else if(config.getThreadingFlags() == EnumSet.of(ThreadedEnum.SIMULATION)) {
+		else if(config.getThreadingFlags().equals(EnumSet.of(ThreadedEnum.SIMULATION))) {
 			Thread sim = new Thread(simulation);
 			sim.start();
 			if(config.getInitiative() != InitiativeEnum.SIMULATION) {

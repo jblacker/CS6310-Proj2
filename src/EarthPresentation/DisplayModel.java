@@ -19,6 +19,8 @@ import java.util.Observable;
 
 import javax.swing.Timer;
 
+import EarthSim.Simulation;
+
 import core.Config;
 import core.DataCell;
 import core.InitiativeEnum;
@@ -95,80 +97,84 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		running = true;
 		refreshTimer.start();
 		startTime = System.currentTimeMillis();
-		if(config.getInitiative() == InitiativeEnum.MASTER_CONTROL){
+		switch(config.getInitiative()){
+		case MASTER_CONTROL:
 			while(!isCancelled){
 				if(sizeChanged) {
 					updateSize();
 				}
 				generateNextImageSet();
 			}
-		}
-		else if(config.getInitiative() == InitiativeEnum.SIMULATION 
-				&& config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)) {
-			while(!isCancelled){
-				if(sizeChanged) {
-					updateSize();
-				}
-				
-				if(config.requested() && config.getBuffer().isEmpty())
-					config.completed();
-				else if(config.requested() && !config.getBuffer().isEmpty())
-					generateNextImageSet();
-				else {
-					try{
-						Thread.sleep(50);
+			break;
+		case SIMULATION: 
+				if(config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)) {
+					while(!isCancelled){
+						if(sizeChanged) {
+							updateSize();
+						}
+						
+						if(config.requested() && config.getBuffer().isEmpty())
+							config.completed();
+						else if(config.requested() && !config.getBuffer().isEmpty())
+							generateNextImageSet();
+						else {
+							try{
+								Thread.sleep(50);
+							}
+							catch(InterruptedException ex){
+								break;
+							}
+						}
 					}
-					catch(InterruptedException ex){
-						break;
-					}
-				}
-			}	
-		}
-		else if(config.getInitiative() == InitiativeEnum.SIMULATION) {
-			while(!isCancelled){
-				if(sizeChanged) {
-					updateSize();
-				}
-				if(config.requested()){
-					generateNextImageSet();
 				}
 				else {
-					try{
-						Thread.sleep(50);
-					}
-					catch(InterruptedException ex){
-						break;
+					while(!isCancelled){
+						if(sizeChanged) {
+							updateSize();
+						}
+						if(config.requested()){
+							generateNextImageSet();
+						}
+						else {
+							try{
+								Thread.sleep(50);
+							}
+							catch(InterruptedException ex){
+								break;
+							}
+						}
 					}
 				}
-			}
-		}	
-		else if(config.getInitiative() == InitiativeEnum.PRESENTATION
-				&& config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)){
-			config.request();
-			while(!isCancelled){
-				if(config.getBuffer().isEmpty()){
+				break;
+		case PRESENTATION:
+				if(config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)){
 					config.request();
-					try{
-						Thread.sleep(50);
-					}
-					catch(InterruptedException ex){
-						break;
+					while(!isCancelled){
+						if(config.getBuffer().isEmpty()){
+							config.request();
+							try{
+								Thread.sleep(50);
+							}
+							catch(InterruptedException ex){
+								break;
+							}
+						}
+						else {
+							generateNextImageSet();
+						}
 					}
 				}
-				else {
-					generateNextImageSet();
+				else{
+					Simulation producer = (Simulation) config.getNonInitativeObject();
+					while(!isCancelled){
+						producer.produce();
+						while(!config.getBuffer().isEmpty()) {
+							generateNextImageSet();
+						}
+					}
 				}
-			}
+				break;
 		}
-		else if(config.getInitiative() == InitiativeEnum.PRESENTATION){
-			//construct producer object
-			while(!isCancelled){
-				//ask producer to produce
-				while(!config.getBuffer().isEmpty()) {
-					generateNextImageSet();
-				}
-			}
-		}	
 			
 		stopTime = System.currentTimeMillis();
 		refreshTimer.stop();
