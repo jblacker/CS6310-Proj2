@@ -12,11 +12,18 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.EnumSet;
 import java.util.Hashtable;
 
 import javax.swing.JButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import EarthSim.Simulation;
+
+import core.Config;
+import core.InitiativeEnum;
+import core.ThreadedEnum;
 
 public class MasterGui {
 
@@ -277,6 +284,22 @@ public class MasterGui {
 	
 	private void Reset() {
 		//TODO: Reset View, Model, & Button Contexts
+	}
+	
+	private void simulate(){
+		Config config = Config.getInstance();
+		if(config.getInitiative() == InitiativeEnum.MASTER_CONTROL) {
+			if(config.getThreadingFlags() == EnumSet.allOf(ThreadedEnum.class)){
+				Thread simulation = new Thread(new Simulation(this.spacingValue, this.simulationTime));
+				Thread presentation = new Thread(model);
+				simulation.start();
+				presentation.start();
+			}
+			else if(config.getThreadingFlags() == EnumSet.noneOf(ThreadedEnum.class)){
+				//run each manually
+			}
+			//etc
+		}
 	}
 
 }

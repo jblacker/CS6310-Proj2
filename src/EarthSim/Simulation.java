@@ -40,7 +40,7 @@ public class Simulation implements Runnable {
 	private boolean mToRun = false;
 
 
-	Simulation(int spacing,
+	public Simulation(int spacing,
 			int timestep) {
 
 		if (timestep < 1)
