@@ -100,15 +100,28 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		switch(config.getInitiative()){
 		case MASTER_CONTROL:
 			while(!isCancelled){
+				checkPause();
 				if(sizeChanged) {
 					updateSize();
 				}
-				generateNextImageSet();
+				if(config.getBuffer().isEmpty()){
+					try{
+						Thread.sleep(50);
+					}
+					catch(InterruptedException ex){
+						break;
+					}
+				}
+				else
+					generateNextImageSet();
+				
+				Thread.yield();
 			}
 			break;
 		case SIMULATION: 
 				if(config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)) {
 					while(!isCancelled){
+						checkPause();
 						if(sizeChanged) {
 							updateSize();
 						}
@@ -129,6 +142,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 				}
 				else {
 					while(!isCancelled){
+						checkPause();
 						if(sizeChanged) {
 							updateSize();
 						}
@@ -150,6 +164,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 				if(config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)){
 					config.request();
 					while(!isCancelled){
+						checkPause();
 						if(config.getBuffer().isEmpty()){
 							config.request();
 							try{
@@ -169,8 +184,10 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 					while(!isCancelled){
 						producer.produce();
 						while(!config.getBuffer().isEmpty()) {
+							checkPause();
 							generateNextImageSet();
 						}
+						Thread.yield();
 					}
 				}
 				break;
