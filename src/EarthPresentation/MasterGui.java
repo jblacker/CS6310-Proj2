@@ -246,7 +246,10 @@ public class MasterGui {
 					timeSlider.setEnabled(false);
 					refreshSlider.setEnabled(false);
 					pauseBtn.setEnabled(true);
-					//TODO: START SIMULATION!
+					
+					simulation = new Simulation(spacingValue, simulationTime);
+					model.setRefreshRate(refreshRate);
+					simulate();
 				}
 			}
 		});
@@ -282,6 +285,16 @@ public class MasterGui {
 		simulationPanel = new JPanel();
 		frame.getContentPane().add(simulationPanel, BorderLayout.CENTER);
 		simulationPanel.setLayout(new BorderLayout(0, 0));
+		Boolean initiative = null;
+		if(Config.getInstance().getInitiative() == InitiativeEnum.PRESENTATION)
+			initiative = true;
+		else if(Config.getInstance().getInitiative() == InitiativeEnum.SIMULATION)
+			initiative = false;
+		
+		model = new DisplayModel(simulationPanel.getHeight(), simulationPanel.getWidth(), initiative);
+		DisplayGrid view = new DisplayGrid(model, simulationPanel.getSize());
+		simulationPanel.add(view, BorderLayout.CENTER);
+		
 	}
 	
 	private void Reset() {
