@@ -36,12 +36,16 @@ public class MasterGui {
 	private JSlider refreshSlider;
 	private JButton simulateBtn;
 	private JButton pauseBtn;
-	private boolean isPaused;
-	private boolean isRunning;
+	private volatile boolean isPaused;
+	private volatile boolean isRunning;
 	private JPanel simulationPanel;
 	
 	private DisplayGrid view;
 	private DisplayModel model;
+	
+	private Simulation simulation;
+	
+	private Thread sim, presentation;
 
 	/**
 	 * Launch the application.
@@ -232,7 +236,7 @@ public class MasterGui {
 					timeSlider.setEnabled(true);
 					refreshSlider.setEnabled(true);
 					pauseBtn.setEnabled(false);
-					//TODO: STOP SIMULATION!
+					endSimulation();
 					
 				}
 				else {
@@ -259,14 +263,12 @@ public class MasterGui {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(isPaused){
-					isPaused = false;
+					pauseHandle(true);
 					pauseBtn.setText("Pause");
-					model.resume();
 				}
 				else {
-					isPaused = true;
+					pauseHandle(false);
 					pauseBtn.setText("Resume");
-					model.pause();
 				}				
 			}
 		});
@@ -286,20 +288,93 @@ public class MasterGui {
 		//TODO: Reset View, Model, & Button Contexts
 	}
 	
-	private void simulate(){
-		Config config = Config.getInstance();
-		if(config.getInitiative() == InitiativeEnum.MASTER_CONTROL) {
-			if(config.getThreadingFlags() == EnumSet.allOf(ThreadedEnum.class)){
-				Thread simulation = new Thread(new Simulation(this.spacingValue, this.simulationTime));
-				Thread presentation = new Thread(model);
-				simulation.start();
-				presentation.start();
-			}
-			else if(config.getThreadingFlags() == EnumSet.noneOf(ThreadedEnum.class)){
-				//run each manually
-			}
-			//etc
+	private void endSimulation() {
+		isRunning = false;
+		if(sim != null)
+			simulation.cancel();
+		if(presentation != null)
+			model.stop();
+	}
+	
+	private void pauseHandle(boolean resume) {
+		if(resume){
+			isPaused = false;
+			if(sim != null)
+				simulation.resume();
+			if(presentation != null)
+				model.resume();
+			if(Config.getInstance().getThreadingFlags() != EnumSet.allOf(ThreadedEnum.class))
+				simulate();
+		}
+		else{
+			isPaused = true;
+			if(sim != null)
+				simulation.pause();
+			if(presentation != null)
+				model.pause();
 		}
 	}
-
+	
+	private void simulate(){
+		Config config = Config.getInstance();
+		//set non initiative objects
+		if(!isPaused){
+			if(config.getInitiative() == InitiativeEnum.PRESENTATION)
+				config.setNonInitativeObject(simulation);
+			else if(config.getInitiative() == InitiativeEnum.SIMULATION)
+				config.setNonInitativeObject(model);
+		}
+		else
+			isPaused = false;
+		
+		if(config.getThreadingFlags() == EnumSet.allOf(ThreadedEnum.class)){
+			Thread sim = new Thread(simulation);
+			Thread presentation = new Thread(model);
+			sim.start();
+			presentation.start();
+		}
+		else if(config.getThreadingFlags() == EnumSet.noneOf(ThreadedEnum.class)){					
+			while(isRunning) {
+				if(isPaused)
+					break;
+				switch(config.getInitiative()) {
+				case SIMULATION:
+					simulation.produce();
+					break;
+				case PRESENTATION:
+					model.consume();
+					break;
+				case MASTER_CONTROL:
+					simulation.produce();
+					model.consume();
+					break;
+				}
+				Thread.yield();
+			}
+		}
+		else if(config.getThreadingFlags() == EnumSet.of(ThreadedEnum.PRESENTATION)) {
+			Thread presentation = new Thread(model);
+			presentation.start();
+			if(config.getInitiative() != InitiativeEnum.PRESENTATION){
+				while(isRunning){
+					if(isPaused)
+						break;
+					simulation.produce();
+					Thread.yield();
+				}
+			}
+		}
+		else if(config.getThreadingFlags() == EnumSet.of(ThreadedEnum.SIMULATION)) {
+			Thread sim = new Thread(simulation);
+			sim.start();
+			if(config.getInitiative() != InitiativeEnum.SIMULATION) {
+				while(isRunning){
+					if(isPaused)
+						break;
+					model.consume();
+					Thread.yield();
+				}
+			}
+		}
+	}
 }
