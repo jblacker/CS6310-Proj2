@@ -75,6 +75,7 @@ public class Config {
 	private final InitiativeEnum initiative;
 	
 	private boolean initativeFlag;
+	private Object nonInitativeComponent;
 	
 	private Config(int bufferSize, EnumSet<ThreadedEnum> threading, InitiativeEnum initiative) {
 		if(bufferSize == 0)
@@ -112,6 +113,14 @@ public class Config {
 	public synchronized void request() {
 		if(!initativeFlag)
 			initativeFlag = true;
+	}
+	
+	public synchronized Object getNonInitativeObject(){
+		return nonInitativeComponent;
+	}
+	
+	public synchronized void setNonInitativeObject(Object opposite) {
+		nonInitativeComponent = opposite;
 	}
 
 }

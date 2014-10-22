@@ -2,14 +2,15 @@ package EarthSim;
 
 import java.util.concurrent.BlockingQueue;
 
+import EarthPresentation.DisplayModel;
+
 import core.Config;
-import core.ControlledEndpoint;
 import core.InitiativeEnum;
 import core.SimulationState;
 import core.ThreadedEnum;
 
 
-public class Simulation implements ControlledEndpoint {
+public class Simulation implements Runnable {
 	/* Interval in minutes of simulation time in which
 	 * temperature values are calculated. */
 	public final int mTimestep;
@@ -23,9 +24,6 @@ public class Simulation implements ControlledEndpoint {
 	private SimulationState mNextSimulationState;
 	/* Queue used to send data to the presentation. */
 	private BlockingQueue<SimulationState> mQueue;
-	/* If producer is set to active, then create a thread to
-	 * process the simulation. */
-	private SimulationThread mThread;
 	
 	/* Flag indicating whether the simulation has the initiative. */
 	private boolean mInitiative = false;
@@ -34,23 +32,16 @@ public class Simulation implements ControlledEndpoint {
 	private boolean mActive = false;
 	
 	/* State flag indicating that the simulation is to be canceled. */
-	private boolean mCanceled = false;
+	private volatile boolean mCanceled = false;
 	/* State flag indicating that the simulation has been paused. */
-	private boolean mPaused = false;
+	private volatile boolean mPaused = false;
 	/* State flag indicating that a call to run() is to be handled
 	 * asynchronously. */
 	private boolean mToRun = false;
-	
-	/* Pointer to consumer's ControlledEnpoint interface.
-	 * This shall be used to control the consumer if the
-	 * Simulation was configured to have the initiative. */
-	private ControlledEndpoint mOtherEndpoint;
 
 
 	Simulation(int spacing,
-			int timestep,
-			BlockingQueue<SimulationState> queue,
-			ControlledEndpoint otherEndpoint) {
+			int timestep) {
 
 		if (timestep < 1)
 			mTimestep = 1;
@@ -61,32 +52,102 @@ public class Simulation implements ControlledEndpoint {
 		
 		mGrid = new SimulationGrid(spacing);
 		
-		mQueue = queue;
+		mQueue = Config.getInstance().getBuffer();
 		mInitiative = (Config.getInstance().getInitiative() ==
 				InitiativeEnum.SIMULATION);
 		mActive = Config.getInstance().getThreadingFlags()
 				.contains(ThreadedEnum.SIMULATION);
-
-		mOtherEndpoint = otherEndpoint;
-		
-		if (mActive) {
-			mThread = new SimulationThread();
-			mThread.start();
 		}
-	}
 
 	/* Run the simulation until the buffer s full.
 	 * Depending on whether the simulation thread has
 	 * been enabled, runSimulation is either processed
 	 * in mThread or in the context of the caller. */
 	public void run() {
-		if (mActive) {
-			mToRun = true;
+		Config config = Config.getInstance();
+		if(config.getInitiative() == InitiativeEnum.MASTER_CONTROL){
+			while(!mCanceled){
+				checkPaused();
+				processStep();
+				while(!mQueue.offer(mNextSimulationState)){
+					try{
+						Thread.sleep(50);
+					}
+					catch(InterruptedException ex){
+						break;
+					}
+				}				
+			}
 		}
-		else {
-			runSimulation();
+		else if(config.getInitiative() == InitiativeEnum.SIMULATION 
+				&& config.getThreadingFlags().contains(ThreadedEnum.PRESENTATION)) {
+			while(!mCanceled){
+				checkPaused();
+				do{
+					processStep();
+				}
+				while(mQueue.offer(mNextSimulationState));
+				
+				if(!config.requested())
+					config.request();
+				
+				try{
+					Thread.sleep(50);
+				}
+				catch(InterruptedException ex){
+					break;
+				}
+			}	
 		}
-			
+		else if(config.getInitiative() == InitiativeEnum.SIMULATION) {
+			while(!mCanceled){
+				checkPaused();
+				do{
+					processStep();
+				}
+				while(mQueue.offer(mNextSimulationState));
+				
+				DisplayModel presentation = (DisplayModel) config.getNonInitativeObject();
+				presentation.consume();
+			}
+		}	
+		else if(config.getInitiative() == InitiativeEnum.PRESENTATION){
+			config.request();
+			while(!mCanceled){
+				if(config.requested()){
+					checkPaused();
+					do{
+						processStep();
+					}
+					while(mQueue.offer(mNextSimulationState));
+					config.completed();
+				}
+				else {
+					try{
+						Thread.sleep(50);
+					}
+					catch(InterruptedException ex){
+						break;
+					}
+				}
+			}
+		}			
+	}
+	
+	private void checkPaused() {
+		try{
+			Thread.sleep(50);
+		}
+		catch(InterruptedException ex){
+			return;
+		}
+	}
+	
+	public void produce(){
+		do{
+			processStep();
+		}
+		while(mQueue.offer(mNextSimulationState));
 	}
 	
 	/* Pause the simulation on its next iteration. */
@@ -133,67 +194,8 @@ public class Simulation implements ControlledEndpoint {
 		mSunLongitude = (mRunningTime % 1440) * 360 / 1440;
 	}
 	
-	boolean enqueueNextSimulationState() {
-		return mQueue.add(mNextSimulationState);
-	}
+//	boolean enqueueNextSimulationState() {
+//		return mQueue.add(mNextSimulationState);
+//	}
 	
-	private void runSimulation() {
-		/* If we have initiative, run forever.
-		 * Otherwise stop when the queue is full.
-		 * Note that the producer and consumer cannot
-		 * both have the initiative at the same time.
-		 * And always exit if stop() or pause() was
-		 * called. */
-		do {
-			/* If we have initiative, then call on
-			 * the consumer to start consuming. */
-			if (mInitiative) {
-				mOtherEndpoint.run(); 
-			}
-			
-			processStep();
-		}
-		while ((enqueueNextSimulationState() || mInitiative) &&
-				!mCanceled && !mPaused);
-	}
-	
-	/* Thread to run simulation on if simulation thread was enabled. */
-	private class SimulationThread extends Thread {
-		
-		/* Free run the simulation until these queue is full. */
-		public void run() {
-			
-			while (waitForRun() && waitPaused()) {
-				runSimulation();
-			}
-		}
-		
-		/* Wait for call to Simulation.run(), which will set
-		 * the mToRun flag. Return false if simulation was
-		 * canceled. */
-		private boolean waitForRun() {
-			while (!mToRun && !mCanceled) {
-				try {
-					sleep(100);
-				}
-				catch (InterruptedException e) { }
-			}
-			mToRun = false;
-			return !mCanceled;
-		}
-		
-		/* If simulation was paused, wait for call to
-		 * Simulation.resume(), which will set the mPaused
-		 * flag to false. Return false if simulation was
-		 * canceled while waiting. */
-		private boolean waitPaused() {
-			while (mPaused && !mCanceled) {
-				try {
-					sleep(100);
-				}
-				catch (InterruptedException e) { }
-			}
-			return !mCanceled;
-		}
-	}
 }

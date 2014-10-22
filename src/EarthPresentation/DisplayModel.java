@@ -103,7 +103,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 				generateNextImageSet();
 			}
 		}
-		else if(config.getInitiative() == InitiativeEnum.PRESENTATION 
+		else if(config.getInitiative() == InitiativeEnum.SIMULATION 
 				&& config.getThreadingFlags().contains(ThreadedEnum.SIMULATION)) {
 			while(!isCancelled){
 				if(sizeChanged) {
