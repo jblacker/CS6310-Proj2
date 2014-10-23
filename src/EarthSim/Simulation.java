@@ -65,54 +65,61 @@ public class Simulation implements Runnable {
 	 * in mThread or in the context of the caller. */
 	public void run() {
 		Config config = Config.getInstance();
-		if(config.getInitiative() == InitiativeEnum.MASTER_CONTROL){
+		switch(config.getInitiative()){
+		case MASTER_CONTROL:
 			while(!mCanceled){
 				checkPaused();
 				processStep();
-				while(!mQueue.offer(mNextSimulationState)){
-					try{
-						Thread.sleep(50);
-					}
-					catch(InterruptedException ex){
-						break;
-					}
-				}				
-			}
-		}
-		else if(config.getInitiative() == InitiativeEnum.SIMULATION 
-				&& config.getThreadingFlags().contains(ThreadedEnum.PRESENTATION)) {
-			while(!mCanceled){
-				checkPaused();
+				boolean retry;
 				do{
-					processStep();
+					retry = mQueue.offer(mNextSimulationState);
+					if(retry){
+						try{
+							Thread.sleep(50);
+						}
+						catch(InterruptedException ex){
+							break;
+						}
+					}
 				}
-				while(mQueue.offer(mNextSimulationState));
-				
-				if(!config.requested())
-					config.request();
-				
-				try{
-					Thread.sleep(50);
-				}
-				catch(InterruptedException ex){
-					break;
-				}
-			}	
-		}
-		else if(config.getInitiative() == InitiativeEnum.SIMULATION) {
-			while(!mCanceled){
-				checkPaused();
-				do{
-					processStep();
-				}
-				while(mQueue.offer(mNextSimulationState));
-				
-				DisplayModel presentation = (DisplayModel) config.getNonInitativeObject();
-				presentation.consume();
+				while(retry);	
 			}
-		}	
-		else if(config.getInitiative() == InitiativeEnum.PRESENTATION){
-			config.request();
+			break;
+		case SIMULATION: 
+				if(config.getThreadingFlags().contains(ThreadedEnum.PRESENTATION)) {
+					while(!mCanceled){
+						checkPaused();
+						do{
+							processStep();
+						}
+						while(mQueue.offer(mNextSimulationState));
+				
+						if(!config.requested())
+							config.request();
+						
+						while(config.requested()){
+							try{
+								Thread.sleep(50);
+							}
+							catch(InterruptedException ex){
+								break;
+							}
+						}
+					}
+				}
+				else {
+					while(!mCanceled){
+						checkPaused();
+						do{
+							processStep();
+						}
+						while(mQueue.offer(mNextSimulationState));
+						
+						DisplayModel presentation = (DisplayModel) config.getNonInitativeObject();
+						presentation.consume();
+					}
+				}	
+		case PRESENTATION:
 			while(!mCanceled){
 				if(config.requested()){
 					checkPaused();
