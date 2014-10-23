@@ -157,7 +157,7 @@ public class SimulationGrid {
 		int index = 0;
 		for (int x = 0; x < mWidth; x++) {
 			for (int y = 0; y < mHeight; y++) {
-				list.set(index++, getCellFromIndex(x, y));
+				list.add(index++, getCellFromIndex(x, y));
 			}
 		}
 		
