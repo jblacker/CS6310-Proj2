@@ -379,7 +379,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	
 	public synchronized void setRefreshRate(int ms) {
 		if(running)
-			throw new IllegalStateException("Refresh rate cannot be set while running");
+			return;
 		
 		refreshTimer = new Timer(ms, this);
 	}
