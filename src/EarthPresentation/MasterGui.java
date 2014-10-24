@@ -6,6 +6,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import javax.swing.JSlider;
 import java.awt.GridBagConstraints;
@@ -38,7 +39,6 @@ public class MasterGui {
 	private JButton pauseBtn;
 	private volatile boolean isPaused;
 	private volatile boolean isRunning;
-	private JPanel simulationPanel;
 	
 	private DisplayGrid view;
 	private DisplayModel model;
@@ -282,18 +282,18 @@ public class MasterGui {
 		gbc_pauseBtn.gridy = 2;
 		controlPanel.add(pauseBtn, gbc_pauseBtn);
 		
-		simulationPanel = new JPanel();
-		frame.getContentPane().add(simulationPanel, BorderLayout.CENTER);
-		simulationPanel.setLayout(new BorderLayout(0, 0));
 		Boolean initiative = null;
 		if(Config.getInstance().getInitiative().equals(InitiativeEnum.PRESENTATION))
 			initiative = true;
 		else if(Config.getInstance().getInitiative().equals(InitiativeEnum.SIMULATION))
 			initiative = false;
 		
-		model = new DisplayModel(simulationPanel.getHeight(), simulationPanel.getWidth(), initiative);
-		DisplayGrid view = new DisplayGrid(model, simulationPanel.getSize());
-		simulationPanel.add(view, BorderLayout.CENTER);
+		model = new DisplayModel(300, 700, initiative);
+		view = new DisplayGrid(model, new Dimension(700,500));
+		view.setVisible(true);
+		frame.getContentPane().add(view, BorderLayout.CENTER);
+		
+		frame.pack();
 		
 	}
 	
@@ -362,7 +362,6 @@ public class MasterGui {
 					model.consume();
 					break;
 				}
-				Thread.yield();
 			}
 		}
 		else if(config.getThreadingFlags().equals(EnumSet.of(ThreadedEnum.PRESENTATION))) {

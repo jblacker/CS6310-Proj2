@@ -107,12 +107,62 @@ public class DisplayCell {
 	private void calculateColor() {
 		//convert to Celsius for more accurate color values
 		double celsiusTemp = this.temperature - 273.15;
-		int t = (int)Math.floor(celsiusTemp);
-		int red, blue;
-		int green = 126; //midway point
-		
-		red = (255  * t) / 100;
-		blue = (255 * (100 - t)) / 100;
+		int temp = (int)Math.floor(celsiusTemp);
+		int red, blue, green;
+
+		if (temp <= -100) {
+			blue = 170;
+			green = 100;
+			red = 170;
+		}
+		else if (temp <= -46) {
+			temp = -1 * temp;
+			blue = 255;
+			green = 145 - (temp * 10) % 115;
+			red = 255;
+		}
+		else if (temp <= -23 && temp > -46) {
+			temp = -1 * temp;
+			blue = 255;
+			green = 145;
+			red = 145 + (temp * 5) % 115;
+		}
+		else if (temp < 0 && temp > -23) {
+			temp = -1 * temp;
+			blue = 255;
+			green = 145;
+			red = 145 - (temp * 5);
+		}
+		else if (temp == 0) {
+			blue = 225;
+			green = 145;
+			red = 145;
+		}
+		else if (temp > 0 && temp < 23) {
+			blue = 255;
+			green = 145 + (temp * 5);
+			red = 145;
+		}
+		else if (temp >= 23 && temp < 46) {
+			blue = 255 - (temp * 5) % 115;
+			green = 255;
+			red = 145;
+		}
+		else if (temp >= 46 && temp < 69) {
+			blue = 145;
+			green = 255;
+			red = 145 + (temp * 5) % 115;
+		}
+		else if (temp >= 69 && temp < 92) {
+			blue = 145;
+			green = 255 - (temp * 5) % 115;
+			red = 255;
+		}
+		else {
+			blue = 145 - (temp * 10) % 115;
+			green = 145 - (temp * 10) % 115;
+			red = 255;
+		}
 		
 		cellColor = new Color(red, green, blue);
 	}

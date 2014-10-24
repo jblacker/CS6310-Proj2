@@ -57,6 +57,7 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 		
 		this.setOpaque(false);
 		this.model = model;
+		model.addObserver(this);
 		this.setPreferredSize(initialSize);
 		this.addComponentListener(this);
 	}
@@ -71,11 +72,13 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 	public void paintComponents(Graphics g) {		
 		Graphics2D g2d = (Graphics2D)g;
 		g2d.drawRenderedImage(model.getMapImage(), new AffineTransform());
+		System.out.println("In View Paint Method");
 		super.paintComponents(g);
 	}
 
 	@Override
 	public void update(Observable o, Object arg) {
+		this.invalidate();
 		this.repaint();	
 	}
 

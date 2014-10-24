@@ -250,7 +250,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		Graphics2D graphics = nextImage.createGraphics();		
 		
 		//set transparent to use as overlay
-		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 2.0f));
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 		
 		//create polygon primitives
 		for(DisplayCell cell : cellData) {
@@ -305,7 +305,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		Graphics2D graphics = nextImage.createGraphics();		
 		
 		//set transparent to use as overlay
-		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 2.0f));
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 
 		graphics.drawImage(this.temperatureMapImage, 0, 0, null);
 		graphics.drawImage(this.solarOverlay, 0, 0, null);
