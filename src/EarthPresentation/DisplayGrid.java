@@ -1,17 +1,16 @@
 package EarthPresentation;
 
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.geom.AffineTransform;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class DisplayGrid extends JPanel implements Observer, ComponentListener {
@@ -20,8 +19,8 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 	
 	private final DisplayModel model;
 	
-	private DisplayGrid.MapView mapPanel;
-	private DisplayGrid.SolarView solarPanel;
+	private JLabel mapPanel;
+	private JLabel solarPanel;
 	
 	public DisplayGrid(final DisplayModel model, Dimension initialSize) {
 		super();
@@ -34,7 +33,7 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 		layout.rowWeights = new double[] { Double.MIN_VALUE };
 		this.setLayout(layout);		
 		
-		mapPanel = new MapView();
+		mapPanel = new JLabel();
 		
 		GridBagConstraints mapConstraint = new GridBagConstraints();
 		mapConstraint.insets = new Insets(5, 5, 5, 5);
@@ -45,7 +44,7 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 		mapConstraint.fill = GridBagConstraints.BOTH;
 		this.add(mapPanel, mapConstraint);
 		
-		solarPanel = new SolarView();
+		solarPanel = new JLabel();
 		GridBagConstraints solarConstraint = new GridBagConstraints();
 		solarConstraint.insets = new Insets(5, 5, 5, 5);
 		solarConstraint.gridx = 0;
@@ -67,18 +66,19 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 		Dimension updatedSize = this.mapPanel.getSize();
 		model.setSize(updatedSize);		
 	}
-
+	/*
 	@Override
 	public void paintComponents(Graphics g) {		
 		Graphics2D g2d = (Graphics2D)g;
 		g2d.drawRenderedImage(model.getMapImage(), new AffineTransform());
 		System.out.println("In View Paint Method");
 		super.paintComponents(g);
-	}
+	}*/
 
 	@Override
 	public void update(Observable o, Object arg) {
-		this.invalidate();
+		mapPanel.setIcon(new ImageIcon(model.getMapImage()));
+		solarPanel.setIcon(new ImageIcon(model.getSolarImage()));
 		this.repaint();	
 	}
 
@@ -95,29 +95,5 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 	@Override
 	public void componentShown(ComponentEvent e) {
 		// Not Used
-	}
-
-	private class MapView extends JPanel {
-
-		private static final long serialVersionUID = -8257311158827750962L;
-		
-		@Override
-		public void paintComponents(Graphics g) {		
-			Graphics2D g2d = (Graphics2D)g;
-			g2d.drawRenderedImage(model.getMapImage(), new AffineTransform());
-			super.paintComponents(g);
-		}
-	}
-	
-	private class SolarView extends JPanel {
-		
-		private static final long serialVersionUID = 2545426640819217443L;
-
-		@Override
-		public void paintComponents(Graphics g) {		
-			Graphics2D g2d = (Graphics2D)g;
-			g2d.drawRenderedImage(model.getSolarImage(), new AffineTransform());
-			super.paintComponents(g);
-		}
 	}
 }

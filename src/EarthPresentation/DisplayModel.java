@@ -49,6 +49,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private int newCanvasWidth;
 	
 	private boolean running;
+	private boolean imageReady;
 	private long startTime;
 	private long stopTime;
 	private int timeStep;
@@ -231,6 +232,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		generateSolarOverlayImage(simState.getSunLongitude(), cells);
 		generateCompositeMapImage();
 		generateNextSolarImage(simState.getSunLongitude());
+		imageReady = true;
 	}
 	
 	private List<DisplayCell> generateDisplayCells(List<DataCell> simData) {
@@ -386,9 +388,10 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == refreshTimer) {
+		if(e.getSource() == refreshTimer && imageReady) {
 			this.setChanged();
 			this.notifyObservers(getElapsedTime());
+			imageReady = false;
 		}
 	}
 	
