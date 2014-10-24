@@ -200,7 +200,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	}
 	
 	public void checkPause() {
-		while(pauseRequested) {
+ 		while(pauseRequested) {
 			try{
 				Thread.sleep(500);
 				Thread.yield();

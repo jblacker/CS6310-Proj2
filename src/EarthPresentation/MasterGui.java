@@ -310,26 +310,30 @@ public class MasterGui {
 	}
 	
 	private void pauseHandle(boolean resume) {
+		Config config = Config.getInstance();
 		if(resume){
-			isPaused = false;
-			if(sim != null)
-				simulation.resume();
-			if(presentation != null)
+			if(config.getThreadingFlags().contains(ThreadedEnum.PRESENTATION))
 				model.resume();
-			if(!Config.getInstance().getThreadingFlags().equals(EnumSet.allOf(ThreadedEnum.class)))
+			if(config.getThreadingFlags().contains(ThreadedEnum.SIMULATION))
+				simulation.resume();
+			
+			if(!config.getThreadingFlags().equals(EnumSet.allOf(ThreadedEnum.class)))
 				simulate();
+			else
+				isPaused = false;
 		}
 		else{
 			isPaused = true;
-			if(sim != null)
-				simulation.pause();
-			if(presentation != null)
+			if(config.getThreadingFlags().contains(ThreadedEnum.PRESENTATION))
 				model.pause();
-		}
+			if(config.getThreadingFlags().contains(ThreadedEnum.SIMULATION))
+				simulation.pause();
+		}	
 	}
 	
 	private void simulate(){
 		Config config = Config.getInstance();
+		boolean resuming = false;
 		//set non initiative objects
 		if(!isPaused){
 			if(config.getInitiative().equals(InitiativeEnum.PRESENTATION))
@@ -337,8 +341,10 @@ public class MasterGui {
 			else if(config.getInitiative().equals(InitiativeEnum.SIMULATION))
 				config.setNonInitativeObject(model);
 		}
-		else
+		else {
 			isPaused = false;
+			resuming = true;			
+		}
 		
 		if(config.getThreadingFlags().equals(EnumSet.allOf(ThreadedEnum.class))){
 			Thread sim = new Thread(simulation);
@@ -367,7 +373,7 @@ public class MasterGui {
 		else if(config.getThreadingFlags().equals(EnumSet.of(ThreadedEnum.PRESENTATION))) {
 			Thread presentation = new Thread(model);
 			presentation.start();
-			if(config.getInitiative() != InitiativeEnum.PRESENTATION){
+			if(!config.getInitiative().equals(InitiativeEnum.PRESENTATION)){
 				while(isRunning){
 					if(isPaused)
 						break;
@@ -379,7 +385,7 @@ public class MasterGui {
 		else if(config.getThreadingFlags().equals(EnumSet.of(ThreadedEnum.SIMULATION))) {
 			Thread sim = new Thread(simulation);
 			sim.start();
-			if(config.getInitiative() != InitiativeEnum.SIMULATION) {
+			if(!config.getInitiative().equals(InitiativeEnum.SIMULATION)) {
 				while(isRunning){
 					if(isPaused)
 						break;
