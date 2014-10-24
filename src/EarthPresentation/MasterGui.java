@@ -298,15 +298,17 @@ public class MasterGui {
 	}
 	
 	private void Reset() {
-		//TODO: Reset View, Model, & Button Contexts
+		
 	}
 	
 	private void endSimulation() {
-		isRunning = false;
-		if(sim != null)
-			simulation.cancel();
-		if(presentation != null)
+		Config config = Config.getInstance();
+		if(config.getThreadingFlags().contains(ThreadedEnum.PRESENTATION))
 			model.stop();
+		if(config.getThreadingFlags().contains(ThreadedEnum.SIMULATION))
+			simulation.cancel();
+		
+		config.getBuffer().clear();
 	}
 	
 	private void pauseHandle(boolean resume) {
@@ -334,6 +336,7 @@ public class MasterGui {
 	private void simulate(){
 		Config config = Config.getInstance();
 		boolean resuming = false;
+		
 		//set non initiative objects
 		if(!isPaused){
 			if(config.getInitiative().equals(InitiativeEnum.PRESENTATION))
@@ -357,22 +360,23 @@ public class MasterGui {
 				if(isPaused)
 					break;
 				switch(config.getInitiative()) {
-				case SIMULATION:
-					simulation.produce();
-					break;
-				case PRESENTATION:
-					model.consume();
-					break;
-				case MASTER_CONTROL:
-					simulation.produce();
-					model.consume();
-					break;
+					case SIMULATION:
+						simulation.produce();
+						break;
+					case PRESENTATION:
+						model.consume();
+						break;
+					case MASTER_CONTROL:
+						simulation.produce();
+						model.consume();
+						break;
 				}
 			}
 		}
 		else if(config.getThreadingFlags().equals(EnumSet.of(ThreadedEnum.PRESENTATION))) {
 			Thread presentation = new Thread(model);
-			presentation.start();
+			if(!resuming)
+				presentation.start();
 			if(!config.getInitiative().equals(InitiativeEnum.PRESENTATION)){
 				while(isRunning){
 					if(isPaused)
@@ -384,7 +388,8 @@ public class MasterGui {
 		}
 		else if(config.getThreadingFlags().equals(EnumSet.of(ThreadedEnum.SIMULATION))) {
 			Thread sim = new Thread(simulation);
-			sim.start();
+			if(!resuming)
+				sim.start();
 			if(!config.getInitiative().equals(InitiativeEnum.SIMULATION)) {
 				while(isRunning){
 					if(isPaused)
