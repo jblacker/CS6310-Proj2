@@ -7,11 +7,12 @@ import core.DataCell;
 public class DisplayCell {
 
 	private final double temperature;
-	private final double seCornerLatitude;
-	private final double seCornerLongitiude;
+	private final double swCornerLatitude;
+	private final double swCornerLongitiude;
 	private final double height;
 	private final double widthTop;
 	private final double widthBottom;
+	private final int gridSpacing;
 	
 	private GeoCoordinate swCorner;
 	private GeoCoordinate seCorner;
@@ -19,57 +20,80 @@ public class DisplayCell {
 	private GeoCoordinate nwCorner;
 	private Color cellColor;
 	
-	public DisplayCell(double temp, double lat, double lon, double height, double wTop, double wBottom) {
-		this.temperature = temp;
-		this.seCornerLatitude = lat;
-		this.seCornerLongitiude = lon;
-		this.height = height;
-		this.widthBottom = wBottom;
-		this.widthTop = wTop;
-		calculateColor();
-		processCalculations();
-	}
 	
-	public DisplayCell(DataCell data) {
+	public DisplayCell(DataCell data, int spacing) {
 		this.temperature = data.getTemperature();
-		this.seCornerLatitude = data.getLatitude();
-		this.seCornerLongitiude = data.getLongitude();
+		this.swCornerLatitude = data.getLatitude();
+		this.swCornerLongitiude = data.getLongitude();
 		this.height = data.getHeight();
 		this.widthBottom = data.getLowerWidth();
 		this.widthTop = data.getUpperWidth();
+		this.gridSpacing = spacing;
 		calculateColor();
 		processCalculations();
 	}
 	
 	public void processCalculations() {
-		seCorner = new GeoCoordinate(this.seCornerLatitude, this.seCornerLongitiude);
-		swCorner = DisplayCell.convertHeightWidthToLatLong(seCorner, 0, widthBottom);
-		nwCorner = DisplayCell.convertHeightWidthToLatLong(seCorner, height, widthTop);
-		neCorner = DisplayCell.convertHeightWidthToLatLong(nwCorner, 0, -widthTop);
+		swCorner = new GeoCoordinate(this.swCornerLatitude, this.swCornerLongitiude);
+		seCorner = convertHeightWidthToLatLong(swCorner, DirectionEnum.SOUTHEAST);
+		nwCorner = convertHeightWidthToLatLong(swCorner, DirectionEnum.NORTHWEST);
+		neCorner = convertHeightWidthToLatLong(swCorner, DirectionEnum.NORTHEAST);
 		
 	}
 	
-	public static GeoCoordinate convertHeightWidthToLatLong(GeoCoordinate origin, double height, double width) {
-		//convert to KM from M.  Height might be 0 (width should never be 0)	
+	private double calculateCellSides(){
+		double p = this.gridSpacing / 360;
+		return core.Constants.EARTH_CIRCUMFERENCE * p; 
+	}
+	
+	private double calculateBaseDifference(){
+		if(this.widthBottom > this.widthTop){
+			double diff = (this.widthBottom * 1000) - (this.widthTop * 1000);
+			return diff / 2f;
+		}
+		else {
+			double diff = (this.widthTop * 1000) - (this.widthBottom * 1000);
+			return diff / 2f;
+		}
+	}
+	
+	public GeoCoordinate convertHeightWidthToLatLong(GeoCoordinate swOrigin, DirectionEnum direction) {	
 		double bearing;
 		double distance;
 		double lat1, lat2;
 		double lon1, lon2;
+		double heightM;
 		
-		width *= 1000;
+		//convert to meters from KM
+		heightM = this.height * 1000;		
 		
-		if(height != 0) {
-			height *= 1000;
-			distance = Math.sqrt(Math.pow(height, 2) + Math.pow(width, 2));
-			bearing = Math.asin(height / distance); 
+		switch(direction){
+			case NORTHWEST:
+				distance = calculateCellSides();
+				double sin = heightM / distance;
+				bearing = Math.asin(sin); //in radians!
+				break;
+			case SOUTHEAST:
+				bearing = Math.toRadians(90);
+				distance = this.widthBottom * 1000; //convert width to meters
+				break;
+			case NORTHEAST:
+				double modifiedBaseLength;
+				if(this.widthBottom > this.widthTop)
+					modifiedBaseLength = (this.widthBottom * 1000) - calculateBaseDifference();
+				else
+					modifiedBaseLength = (this.widthTop * 1000) - calculateBaseDifference();
+				
+				distance = Math.sqrt(Math.pow(modifiedBaseLength, 2) + Math.pow(heightM, 2));
+				double tempSin = heightM / distance;
+				bearing = Math.asin(tempSin); //in radians!
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid Direction Enum Value");
 		}
-		else {
-			distance = width;
-			bearing = Math.toRadians(90);
-		}
 		
-		lat1 = Math.toRadians(origin.getLatitude());
-		lon1 = Math.toRadians(origin.getLongitude());
+		lat1 = Math.toRadians(swOrigin.getLatitude());
+		lon1 = Math.toRadians(swOrigin.getLongitude());
 		
 		lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance / core.Constants.EARTH_RADIUS) +
 				Math.cos(lat1) * Math.sin(distance / core.Constants.EARTH_RADIUS) * Math.cos(bearing));

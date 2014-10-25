@@ -249,6 +249,7 @@ public class MasterGui {
 					
 					simulation = new Simulation(spacingValue, simulationTime);
 					model.setRefreshRate(refreshRate);
+					model.setGridSpacing(spacingValue);
 					simulate();
 				}
 			}
