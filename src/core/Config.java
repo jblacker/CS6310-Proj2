@@ -3,10 +3,6 @@ package core;
 import java.util.EnumSet;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import core.Constants.BUFFERING_PARAMETERS;
-import core.Constants.CONCURRENCY_PARAMETERS;
-import core.Constants.INITIATIVE_PARAMETERS;
-
 public class Config {
 	
 	private static Config instance = null;
