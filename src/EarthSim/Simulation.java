@@ -176,7 +176,7 @@ public class Simulation implements Runnable {
 	private void processStep() {
 
 		/* Process radiant temperature changes. */
-		mGrid.calculateRadiantTempertaures(mSunLongitude);
+		mGrid.calculateRadiantTemperatures(mSunLongitude);
 		
 		/* Create a new simulation grid that is a copy of the previous one. */
 		SimulationGrid newGrid = new SimulationGrid(mGrid);
@@ -198,7 +198,7 @@ public class Simulation implements Runnable {
 		mRunningTime += mTimestep;
 		
 		/* Advance the sun for the next simulation state. */
-		mSunLongitude = (mRunningTime % 1440) * 360 / 1440;
+		mSunLongitude = (mRunningTime % 1440) * 360 / 1440 - 180;
 	}
 	
 //	boolean enqueueNextSimulationState() {

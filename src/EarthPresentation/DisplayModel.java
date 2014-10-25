@@ -369,7 +369,8 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	}
 	
 	public Point CalculateSolarMercatorPoint(double longitude) {
-		longitude = Math.toRadians(longitude);
+        System.out.printf("display: %s\n", longitude);
+		//longitude = Math.toRadians(longitude);
 		double x = (longitude + 180) * (this.mapCanvasWidth / 360);
 		x = Math.floor(x);
 		
