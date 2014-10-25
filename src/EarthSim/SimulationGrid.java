@@ -157,6 +157,7 @@ public class SimulationGrid {
 		int index = 0;
 		for (int x = 0; x < mWidth; x++) {
 			for (int y = 0; y < mHeight; y++) {
+                System.out.printf("temp: %f\n", getCellFromIndex(x,y).getTemperature());
 				list.add(index++, getCellFromIndex(x, y));
 			}
 		}
@@ -180,12 +181,13 @@ public class SimulationGrid {
 
 				/* Calculate the heating from the sun */
 				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * attenuation;
+                //System.out.printf("%f\n", Th);
 
 				/* Calculate cooling. */
-				double numCells = mWidth * mHeight;
-				double beta = numCells * cell.getArea() / Constants.EARTH_SURFACE_AREA;
+				double beta = cell.getArea() / Constants.EARTH_SURFACE_AREA;
 				double Tc = beta * Constants.AVERAGE_EARTH_TEMPERATURE;
-		
+                //System.out.printf("%f %f\n", Th, Tc);
+
 				cell.setTemperature(cell.getTemperature() + Th - Tc);
 			}
 		}
