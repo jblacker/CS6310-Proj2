@@ -1,6 +1,7 @@
 package EarthPresentation;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -12,11 +13,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 
+import javax.imageio.ImageIO;
 import javax.swing.Timer;
 
 import EarthSim.Simulation;
@@ -240,9 +244,8 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		
 		List<DisplayCell> cells = generateDisplayCells(simState.getCells());
 		generateNextMapImage(cells);
-		generateSolarOverlayImage(simState.getSunLongitude(), cells);
+		generateSolarOverlayImage(simState.getSunLongitude());
 		generateCompositeMapImage();
-		generateNextSolarImage(simState.getSunLongitude());
 		imageReady = true;
 	}
 	
@@ -261,87 +264,97 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private void generateNextMapImage(List<DisplayCell> cellData) {
 		
 		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
-		Graphics2D graphics = nextImage.createGraphics();		
-		
-		//set transparent to use as overlay
-		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-		
-		//create polygon primitives
-		for(DisplayCell cell : cellData) {
-			Polygon cellPolygon = new Polygon();
-			Point ne = LatLongToMercatorPoint(cell.getNeCorner());
-			Point nw = LatLongToMercatorPoint(cell.getNwCorner());
-			Point se = LatLongToMercatorPoint(cell.getSeCorner());
-			Point sw = LatLongToMercatorPoint(cell.getSwCorner());
-			cellPolygon.addPoint(ne.x, ne.y);
-			cellPolygon.addPoint(nw.x, nw.y);
-			cellPolygon.addPoint(se.x, se.y);
-			cellPolygon.addPoint(sw.x, sw.y);
+		Graphics2D graphics = null;
+		try{
+			graphics = nextImage.createGraphics();		
 			
-			graphics.setColor(cell.getColor());
-			graphics.fillPolygon(cellPolygon);
+			//set transparent to use as overlay
+			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+			
+			//create polygon primitives
+			for(DisplayCell cell : cellData) {
+				Polygon cellPolygon = new Polygon();
+				Point ne = LatLongToMercatorPoint(cell.getNeCorner());
+				Point nw = LatLongToMercatorPoint(cell.getNwCorner());
+				Point se = LatLongToMercatorPoint(cell.getSeCorner());
+				Point sw = LatLongToMercatorPoint(cell.getSwCorner());
+				cellPolygon.addPoint(ne.x, ne.y);
+				cellPolygon.addPoint(nw.x, nw.y);
+				cellPolygon.addPoint(se.x, se.y);
+				cellPolygon.addPoint(sw.x, sw.y);
+				
+				graphics.setColor(cell.getColor());
+				graphics.fillPolygon(cellPolygon);
+			}
+			
+			this.temperatureMapImage = nextImage;
 		}
-		
-		this.temperatureMapImage = nextImage;
+		finally{
+			if(graphics != null)
+				graphics.dispose();
+		}
 	}
 	
-	private void generateSolarOverlayImage(double solarLongitude, List<DisplayCell> cellData) {
-		//filter out cells under sun
-		List<DisplayCell> sunOverheadCells = new LinkedList<DisplayCell>();
-		for(DisplayCell cell : cellData) {
-			if(DisplayCell.isLongitudeInCell(solarLongitude, cell))
-				sunOverheadCells.add(cell);
-		}
+	private void generateSolarOverlayImage(double solarLongitude) {
+		Point p = CalculateSolarMercatorPoint(solarLongitude);
 		
 		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
-		Graphics2D graphics = nextImage.createGraphics();
-		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-		for(DisplayCell cell : sunOverheadCells) {
-			Polygon cellPolygon = new Polygon();
-			Point ne = LatLongToMercatorPoint(cell.getNeCorner());
-			Point nw = LatLongToMercatorPoint(cell.getNwCorner());
-			Point se = LatLongToMercatorPoint(cell.getSeCorner());
-			Point sw = LatLongToMercatorPoint(cell.getSwCorner());
-			cellPolygon.addPoint(ne.x, ne.y);
-			cellPolygon.addPoint(nw.x, nw.y);
-			cellPolygon.addPoint(se.x, se.y);
-			cellPolygon.addPoint(sw.x, sw.y);
-			
-			graphics.setColor(Color.YELLOW);
-			graphics.fillPolygon(cellPolygon);
-		}
 		
-		this.solarOverlay = nextImage;
+		Graphics2D graphics = null;
+		try{
+				graphics = nextImage.createGraphics();
+				graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+				graphics.setColor(Color.YELLOW);
+				graphics.setStroke(new BasicStroke(10));
+				graphics.drawLine(p.x, 0, p.x, mapCanvasHeight);
+			
+				this.solarOverlay = nextImage;
+		}
+		finally{
+			if(graphics != null)
+				graphics.dispose();
+		}
 	}
 	
 	private void generateCompositeMapImage() {
 		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
-		Graphics2D graphics = nextImage.createGraphics();		
-		
-		//set transparent to use as overlay
-		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+		BufferedImage scaledMap = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D graphics = null;
+		Graphics2D scaledImageGraphics = null;
+		try{
+			ClassLoader cl = getClass().getClassLoader();
+			File file = new File(cl.getResource("Mercator.gif").getFile());
+			BufferedImage mercatorMap = ImageIO.read(file);
+			scaledImageGraphics = scaledMap.createGraphics();
+			
+			scaledImageGraphics.drawImage(mercatorMap, 0, 0, mapCanvasWidth, mapCanvasHeight, null);
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
+		finally{
+			if(scaledImageGraphics != null)
+				scaledImageGraphics.dispose();
+		}
+		try{
+			
+			graphics = nextImage.createGraphics();			
+			
+			//set transparent to use as overlay
+			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+			
+			graphics.drawImage(scaledMap, 0, 0, null);			
+			graphics.drawImage(this.temperatureMapImage, 0, 0, null);
+			graphics.drawImage(this.solarOverlay, 0, 0, null);
+			
+			this.compositeMap = nextImage;
+		}
+		finally{
+			if(graphics != null)
+				graphics.dispose();
+		}
+	}
 
-		graphics.drawImage(this.temperatureMapImage, 0, 0, null);
-		graphics.drawImage(this.solarOverlay, 0, 0, null);
-		
-		this.compositeMap = nextImage;
-	}
-	
-	private void generateNextSolarImage(double solarLongitude) {
-		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, solarCanvasHeight, BufferedImage.TYPE_3BYTE_BGR);
-		Graphics2D graphics = nextImage.createGraphics();
-		
-		double x = CalculateSolarMercatorPoint(solarLongitude).getX();
-		double radius = this.solarCanvasHeight / 2;
-		Shape sunCircle = new Ellipse2D.Double(this.solarCanvasHeight, this.solarCanvasHeight, x - radius, 0);
-		
-		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		graphics.setColor(Color.YELLOW);
-		graphics.fill(sunCircle);
-		
-		this.solarImage = nextImage;
-	}
-	
 	public Point LatLongToMercatorPoint(GeoCoordinate coords) {
 		//convert to radians
 		double lat = Math.toRadians(coords.getLatitude());
@@ -356,7 +369,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	}
 	
 	public Point CalculateSolarMercatorPoint(double longitude) {
-		longitude = longitude / (180 * Math.PI);
+		longitude = Math.toRadians(longitude);
 		double x = (longitude + 180) * (this.mapCanvasWidth / 360);
 		x = Math.floor(x);
 		

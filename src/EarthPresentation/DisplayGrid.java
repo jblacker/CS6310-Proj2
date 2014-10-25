@@ -1,5 +1,6 @@
 package EarthPresentation;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -24,35 +25,10 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 	
 	public DisplayGrid(final DisplayModel model, Dimension initialSize) {
 		super();
-		
-		int height = initialSize.height / 5;
-		GridBagLayout layout = new GridBagLayout();
-		layout.columnWidths = new int[] { initialSize.width };
-		layout.rowHeights = new int[] { height, height, height, height, height, height };
-		layout.columnWeights = new double[] { Double.MIN_VALUE };
-		layout.rowWeights = new double[] { Double.MIN_VALUE };
-		this.setLayout(layout);		
-		
+		this.setLayout(new BorderLayout());
 		mapPanel = new JLabel();
 		
-		GridBagConstraints mapConstraint = new GridBagConstraints();
-		mapConstraint.insets = new Insets(5, 5, 5, 5);
-		mapConstraint.gridx = 0;
-		mapConstraint.gridy = 0;
-		mapConstraint.gridheight = 5;
-		mapConstraint.gridwidth = 1;
-		mapConstraint.fill = GridBagConstraints.BOTH;
-		this.add(mapPanel, mapConstraint);
-		
-		solarPanel = new JLabel();
-		GridBagConstraints solarConstraint = new GridBagConstraints();
-		solarConstraint.insets = new Insets(5, 5, 5, 5);
-		solarConstraint.gridx = 0;
-		solarConstraint.gridy = 5;
-		solarConstraint.gridheight = 1;
-		solarConstraint.gridwidth = 1;
-		solarConstraint.fill = GridBagConstraints.BOTH;
-		this.add(solarPanel, solarConstraint);
+		this.add(mapPanel, BorderLayout.CENTER);
 		
 		this.setOpaque(false);
 		this.model = model;
@@ -78,7 +54,6 @@ public class DisplayGrid extends JPanel implements Observer, ComponentListener {
 	@Override
 	public void update(Observable o, Object arg) {
 		mapPanel.setIcon(new ImageIcon(model.getMapImage()));
-		solarPanel.setIcon(new ImageIcon(model.getSolarImage()));
 		this.repaint();	
 	}
 
