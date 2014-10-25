@@ -50,7 +50,7 @@ public class DisplayCell {
 	 * @return The distance in meters of the intersecting sides
 	 */
 	private double calculateCellSides(){
-		double p = this.gridSpacing / 360;
+		double p = this.gridSpacing / 360f;
 		return core.Constants.EARTH_CIRCUMFERENCE * p; 
 	}
 	
