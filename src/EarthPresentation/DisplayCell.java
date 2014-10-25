@@ -33,101 +33,146 @@ public class DisplayCell {
 		processCalculations();
 	}
 	
+	/**
+	 * Handles the overall calculations of determining the latitude & longitude 
+	 * of each corner of the cell
+	 */
 	public void processCalculations() {
 		swCorner = new GeoCoordinate(this.swCornerLatitude, this.swCornerLongitiude);
-		seCorner = convertHeightWidthToLatLong(swCorner, DirectionEnum.SOUTHEAST);
-		nwCorner = convertHeightWidthToLatLong(swCorner, DirectionEnum.NORTHWEST);
-		neCorner = convertHeightWidthToLatLong(swCorner, DirectionEnum.NORTHEAST);
+		seCorner = calculateCoordinateForPoint(DirectionEnum.SOUTHEAST);
+		nwCorner = calculateCoordinateForPoint(DirectionEnum.NORTHWEST);
+		neCorner = calculateCoordinateForPoint(DirectionEnum.NORTHEAST);
 		
 	}
 	
+	/**
+	 * Calculates the sides of the iso trapezoid on the earth 
+	 * @return The distance in meters of the intersecting sides
+	 */
 	private double calculateCellSides(){
 		double p = this.gridSpacing / 360;
 		return core.Constants.EARTH_CIRCUMFERENCE * p; 
 	}
 	
+	/**
+	 * Calculates the difference between an edge and the height line of the shorter base
+	 * @return The difference in meters
+	 */
 	private double calculateBaseDifference(){
 		if(this.widthBottom > this.widthTop){
-			double diff = (this.widthBottom * 1000) - (this.widthTop * 1000);
+			double diff = this.widthBottom - this.widthTop;
 			return diff / 2f;
 		}
 		else {
-			double diff = (this.widthTop * 1000) - (this.widthBottom * 1000);
+			double diff = this.widthTop - this.widthBottom;
 			return diff / 2f;
 		}
 	}
 	
-	public GeoCoordinate convertHeightWidthToLatLong(GeoCoordinate swOrigin, DirectionEnum direction) {	
+	/**
+	 * Calculate the lat & long of a point on the cell other than the origin (SW)  
+	 * Using the origin the other points can be calculated.
+	 * @param direction GeoDirection from the Origin
+	 * @return GeoCoordinate containing the latitude & longitude for that point
+	 */
+	public GeoCoordinate calculateCoordinateForPoint(DirectionEnum direction) {	
 		double bearing;
 		double distance;
 		double lat1, lat2;
-		double lon1, lon2;
-		double heightM;
-		
-		//convert to meters from KM
-		heightM = this.height * 1000;		
+		double lon1, lon2;	
 		
 		switch(direction){
 			case NORTHWEST:
 				distance = calculateCellSides();
-				double sin = heightM / distance;
+				double sin = height / distance;
 				bearing = Math.asin(sin); //in radians!
 				break;
 			case SOUTHEAST:
 				bearing = Math.toRadians(90);
-				distance = this.widthBottom * 1000; //convert width to meters
+				distance = this.widthBottom;
 				break;
 			case NORTHEAST:
 				double modifiedBaseLength;
 				if(this.widthBottom > this.widthTop)
-					modifiedBaseLength = (this.widthBottom * 1000) - calculateBaseDifference();
+					modifiedBaseLength = this.widthBottom - calculateBaseDifference();
 				else
-					modifiedBaseLength = (this.widthTop * 1000) - calculateBaseDifference();
+					modifiedBaseLength = this.widthTop - calculateBaseDifference();
 				
-				distance = Math.sqrt(Math.pow(modifiedBaseLength, 2) + Math.pow(heightM, 2));
-				double tempSin = heightM / distance;
+				distance = Math.sqrt(Math.pow(modifiedBaseLength, 2) + Math.pow(height, 2));
+				double tempSin = height / distance;
 				bearing = Math.asin(tempSin); //in radians!
 				break;
 			default:
 				throw new IllegalArgumentException("Invalid Direction Enum Value");
 		}
 		
-		lat1 = Math.toRadians(swOrigin.getLatitude());
-		lon1 = Math.toRadians(swOrigin.getLongitude());
+		//convert to radians
+		lat1 = Math.toRadians(swCorner.getLatitude());
+		lon1 = Math.toRadians(swCorner.getLongitude());
 		
+		//calculate latitude of point
 		lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance / core.Constants.EARTH_RADIUS) +
 				Math.cos(lat1) * Math.sin(distance / core.Constants.EARTH_RADIUS) * Math.cos(bearing));
 		
+		//calculate longitude of point
 		lon2 = lon1 + Math.atan2(Math.sin(bearing) * Math.sin(distance / core.Constants.EARTH_RADIUS) * Math.cos(lat1), 
 				Math.cos(distance / core.Constants.EARTH_RADIUS) - Math.sin(lat1) * Math.sin(lat2));
 		
 		return new GeoCoordinate(Math.toDegrees(lat2), Math.toDegrees(lon2));
 	}
 
+	/**
+	 * Gets the cell's color publicly
+	 * @return Color object
+	 */
 	public Color getColor() {
 		return cellColor;
 	}
 
+	/**
+	 * Gets the coordinates of SW Corner of the Cell
+	 * @return the SW Corner Coordinates
+	 */
 	public GeoCoordinate getSwCorner() {
 		return swCorner;
 	}
 
+	/**
+	 * Gets the coordinates of SE Corner of the Cell
+	 * @return the SE Corner Coordinates
+	 */
 	public GeoCoordinate getSeCorner() {
 		return seCorner;
 	}
 
+	/**
+	 * Gets the coordinates of NE Corner of the Cell
+	 * @return the NE Corner Coordinates
+	 */
 	public GeoCoordinate getNeCorner() {
 		return neCorner;
 	}
 
+	/**
+	 * Gets the coordinates of NW Corner of the Cell
+	 * @return the NW Corner Coordinates
+	 */
 	public GeoCoordinate getNwCorner() {
 		return nwCorner;
 	}
 
+	/**
+	 * Gets the temperature of the cell
+	 * @return the temperature of the cell
+	 */
 	public double getTemperature() {
 		return temperature;
 	}
 	
+	/**
+	 * Calculates and sets the color of the cell using the algorithm provided by the sample
+	 * in the assignment page.
+	 */
 	private void calculateColor() {
 		//convert to Celsius for more accurate color values
 		double celsiusTemp = this.temperature - 273.15;
@@ -191,6 +236,12 @@ public class DisplayCell {
 		cellColor = new Color(red, green, blue);
 	}
 	
+	/**
+	 * Used to check if a longitude is located within the cell
+	 * @param lon Longitude to check
+	 * @param cell A DisplayCell to test
+	 * @return True if it's located within the cell, otherwise false
+	 */
 	public static boolean isLongitudeInCell(double lon, DisplayCell cell) {
 		boolean useNorth = cell.widthBottom < cell.widthTop;
 				
