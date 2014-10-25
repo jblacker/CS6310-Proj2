@@ -72,7 +72,7 @@ public class Simulation implements Runnable {
 				processStep();
 				boolean retry;
 				do{
-					retry = mQueue.offer(mNextSimulationState);
+					retry = !mQueue.offer(mNextSimulationState);
 					if(retry){
 						try{
 							Thread.sleep(50);
