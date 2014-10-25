@@ -356,7 +356,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * If for some reason the underlying map cannot be located it will attempt to display without it
 	 */
 	private void generateCompositeMapImage() {
-		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_3BYTE_BGR);
+		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D graphics = null;
 		boolean useMap = true;
 		
@@ -373,6 +373,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			
 			graphics = nextImage.createGraphics();			
 			
+			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 			if(useMap)
 				graphics.drawImage(mapImage, 0, 0, null);
 			
