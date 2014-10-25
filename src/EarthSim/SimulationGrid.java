@@ -200,7 +200,7 @@ public class SimulationGrid {
 			d = Math.abs(-lon - sunLon);
         //System.out.printf("%f\n", d);
 		if (d < 90)
-			return d * Math.cos(Math.toRadians(lat));
+			return Math.cos(Math.toRadians(d)) * Math.cos(Math.toRadians(lat));
 		else
 			return 0;
 	}
