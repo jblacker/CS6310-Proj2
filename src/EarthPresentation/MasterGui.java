@@ -288,8 +288,8 @@ public class MasterGui {
 		else if(Config.getInstance().getInitiative().equals(InitiativeEnum.SIMULATION))
 			initiative = false;
 		
-		model = new DisplayModel(300, 700, initiative);
-		view = new DisplayGrid(model, new Dimension(700,500));
+		model = new DisplayModel(400, 1000, initiative);
+		view = new DisplayGrid(model, new Dimension(1000,400));
 		view.setVisible(true);
 		frame.getContentPane().add(view, BorderLayout.CENTER);
 		

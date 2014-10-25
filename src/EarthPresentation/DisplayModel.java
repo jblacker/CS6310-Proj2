@@ -29,25 +29,32 @@ import core.ThreadedEnum;
 
 public class DisplayModel extends Observable implements Runnable, ActionListener{
 
+	//true if has initiative, false if simulation has initiative, null if MasterGui has it
 	private final Boolean hasInitative;
 	
+	//Flags for handling stop, start, pause, resume, and size changed during simulation
 	private volatile boolean isCancelled = false; 
 	private volatile boolean sizeChanged = false;
 	private volatile boolean pauseRequested = false;
 
 	private Timer refreshTimer;
+	
+	//Images for View
 	private BufferedImage temperatureMapImage;
 	private BufferedImage solarImage;
 	private BufferedImage solarOverlay;
 	private BufferedImage compositeMap;
 	
+	//current size of canvases
 	private int mapCanvasHeight;
 	private int mapCanvasWidth;
 	private int solarCanvasHeight;
 	
+	//used for when a change is sensed
 	private int newCanvasHeight;
 	private int newCanvasWidth;
 	
+	//timing flags
 	private boolean running;
 	private boolean imageReady;
 	private long startTime;
@@ -82,6 +89,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		this.hasInitative = initiative;
 	}
 	
+	//Manual Buffer Drain & Display (not threaded)
 	public void consume() {
 		Config config = Config.getInstance();
 		while(!config.getBuffer().isEmpty()) {
@@ -93,6 +101,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		}
 	}
 	
+	//Runnable context for threads
 	public void run() {
 		Config config = Config.getInstance();
 		running = true;
@@ -199,6 +208,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		running = false;
 	}
 	
+	//Handle a pause and spinwait if paused
 	public void checkPause() {
  		while(pauseRequested) {
 			try{
@@ -211,6 +221,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		}
 	}
 	
+	//generates the entire set of images per buffer pull
 	public void generateNextImageSet() {
 		SimulationState simState;
 		if(hasInitative == null || !hasInitative){
@@ -235,6 +246,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		imageReady = true;
 	}
 	
+	//
 	private List<DisplayCell> generateDisplayCells(List<DataCell> simData) {
 		List<DisplayCell> displayCells = new ArrayList<DisplayCell>();
 		
@@ -331,17 +343,20 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	}
 	
 	public Point LatLongToMercatorPoint(GeoCoordinate coords) {
+		//convert to radians
+		double lat = Math.toRadians(coords.getLatitude());
+		//calc x coordinate
 		double x = (coords.getLongitude() + 180 ) * (this.mapCanvasWidth / 360);
-		x = Math.floor(x);
-		double latRadians = (coords.getLatitude() * Math.PI) / 180;
-		double mercScaled = Math.log(Math.tan(Math.PI / 4) + (latRadians/2));
+		
+		//calc y coodinate
+		double mercScaled = Math.toDegrees(Math.log(Math.tan(Math.PI / 4) + (lat/2)));
 		double y = (this.mapCanvasHeight / 2) - ((this.mapCanvasWidth * mercScaled) / (Math.PI * 2));
-		y = Math.floor(y);
 		
 		return new Point((int)x, (int)y);
 	}
 	
 	public Point CalculateSolarMercatorPoint(double longitude) {
+		longitude = longitude / (180 * Math.PI);
 		double x = (longitude + 180) * (this.mapCanvasWidth / 360);
 		x = Math.floor(x);
 		
@@ -368,7 +383,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	}
 	
 	public synchronized void stop() {
-		isCancelled = true;		
+		isCancelled = true;
 	}
 	
 	public synchronized void pause() {
