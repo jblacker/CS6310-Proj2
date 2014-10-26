@@ -304,9 +304,9 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private double getDegreesPerPixel(LatLonEnum latlon){
 		switch(latlon){
 			case LATITUDE:
-				return 360f / (double) this.mapCanvasWidth;
+				return (double) this.mapCanvasWidth / 360f;
 			case LONGITUDE:
-				return 180f / (double) this.mapCanvasHeight;
+				return (double) this.mapCanvasHeight / 180f;
 			default:
 				throw new IllegalArgumentException("Unknown Enum Value");
 		}
