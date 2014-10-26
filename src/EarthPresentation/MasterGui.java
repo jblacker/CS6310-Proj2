@@ -320,10 +320,6 @@ public class MasterGui {
 		
 	}
 	
-	private void Reset() {
-		
-	}
-	
 	private void endSimulation() {
 		Config config = Config.getInstance();
 		if(config.getThreadingFlags().contains(ThreadedEnum.PRESENTATION))
