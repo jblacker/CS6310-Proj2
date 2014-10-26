@@ -215,7 +215,7 @@ public class MasterGui {
 
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
-				simulationTime = timeSlider.getValue();				
+				simulationTime = timeSlider.getValue();		
 			}
 		});
 		GridBagConstraints gbc_timeSlider = new GridBagConstraints();
@@ -358,6 +358,7 @@ public class MasterGui {
 	
 	private void simulate(){
 		Config config = Config.getInstance();
+		config.getBuffer().clear();
 		boolean resuming = false;
 		
 		//set non initiative objects
