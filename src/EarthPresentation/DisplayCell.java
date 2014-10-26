@@ -180,15 +180,15 @@ public class DisplayCell {
 		int red, blue, green;
 
 		if (temp <= -100) {
-			blue = 170;
-			green = 100;
-			red = 170;
+			blue = 255;
+			green = 0;
+			red = 0;
 		}
 		else if (temp <= -46) {
 			temp = -1 * temp;
 			blue = 255;
 			green = 145 - (temp * 10) % 115;
-			red = 255;
+			red = 0;
 		}
 		else if (temp <= -23 && temp > -46) {
 			temp = -1 * temp;
@@ -223,12 +223,12 @@ public class DisplayCell {
 			red = 145 + (temp * 5) % 115;
 		}
 		else if (temp >= 69 && temp < 92) {
-			blue = 145;
+			blue = 100;
 			green = 255 - (temp * 5) % 115;
 			red = 255;
 		}
 		else {
-			blue = 145 - (temp * 10) % 115;
+			blue = 0;
 			green = 145 - (temp * 10) % 115;
 			red = 255;
 		}

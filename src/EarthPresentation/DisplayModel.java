@@ -304,10 +304,12 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			//create polygon primitives for each cell
 			for(DisplayCell cell : cellData) {
 				Polygon cellPolygon = new Polygon();
-				Point ne = LatLongToMercatorPoint(cell.getNeCorner());
-				Point nw = LatLongToMercatorPoint(cell.getNwCorner());
-				Point se = LatLongToMercatorPoint(cell.getSeCorner());
-				Point sw = LatLongToMercatorPoint(cell.getSwCorner());
+				Point ne = latLongToPoint(cell.getNeCorner());
+				Point nw = latLongToPoint(cell.getNwCorner());
+				Point se = latLongToPoint(cell.getSeCorner());
+				Point sw = latLongToPoint(cell.getSwCorner());
+				System.out.println("Coords- NE: " + ne.x +", " + ne.y + " NW: " + nw.x + ", " + nw.y + " SW: " + sw.x + ", " + sw.y +
+						" SE: " + se.x + ", " + se.y); 
 				cellPolygon.addPoint(ne.x, ne.y);
 				cellPolygon.addPoint(nw.x, nw.y);
 				cellPolygon.addPoint(se.x, se.y);
@@ -398,7 +400,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		Graphics2D scaledImageGraphics = null;
 		try{
 			ClassLoader cl = getClass().getClassLoader();
-			File file = new File(cl.getResource("Mercator.gif").getFile());
+			File file = new File(cl.getResource("world-map.jpg").getFile());
 			BufferedImage mercatorMap = ImageIO.read(file);
 			scaledImageGraphics = scaledMap.createGraphics();
 			
@@ -419,17 +421,14 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * @param coords Latitude & Longititude coordinates
 	 * @return Point on the canvas
 	 */
-	public Point LatLongToMercatorPoint(GeoCoordinate coords) {
-		//convert to radians
-		double lat = Math.toRadians(coords.getLatitude());
-		//calc x coordinate
-		double x = (coords.getLongitude() + 180 ) * (this.mapCanvasWidth / 360);
+	public Point latLongToPoint(GeoCoordinate coords) {
+		double x, y;
 		
-		//calc y coodinate
-		double mercScaled = Math.toDegrees(Math.log(Math.tan(Math.PI / 4) + (lat/2)));
-		double y = (this.mapCanvasHeight / 2) - ((this.mapCanvasWidth * mercScaled) / (Math.PI * 2));
-		
-		return new Point((int)x, (int)y);
+		x = (coords.getLongitude() - 90) / 360 + 0.5;
+
+		double siny = Math.sin(Math.toRadians(coords.getLatitude()));
+		y = 0.5 * Math.log((1 + siny) / (1 - siny)) / -(2 * Math.PI) + 0.5;
+		return new Point((int)(x * this.mapCanvasWidth),(int)(y * this.mapCanvasHeight));
 	}
 	
 	/**
@@ -438,8 +437,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * @return Topmost point of the canvas where the solar line's origin is located.
 	 */
 	public Point CalculateSolarMercatorPoint(double longitude) {
-        System.out.printf("display: %s\n", longitude);
-		//longitude = Math.toRadians(longitude);
+        //System.out.printf("display: %s\n", longitude);
 		double x = (longitude + 180) * (this.mapCanvasWidth / 360);
 		x = Math.floor(x);
 		
