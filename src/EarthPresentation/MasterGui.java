@@ -44,8 +44,6 @@ public class MasterGui {
 	private DisplayModel model;
 	
 	private Simulation simulation;
-	
-	private Thread sim, presentation;
 
 	/**
 	 * Launch the application.
@@ -83,11 +81,33 @@ public class MasterGui {
 		JPanel controlPanel = new JPanel();
 		frame.getContentPane().add(controlPanel, BorderLayout.NORTH);
 		GridBagLayout gbl_controlPanel = new GridBagLayout();
-		gbl_controlPanel.columnWidths = new int[]{65, 45};
+		gbl_controlPanel.columnWidths = new int[] {10, 65, 45};
 		gbl_controlPanel.rowHeights = new int[]{20, 20, 20};
-		gbl_controlPanel.columnWeights = new double[]{Double.MIN_VALUE};
+		gbl_controlPanel.columnWeights = new double[]{1, 4, 1};
 		gbl_controlPanel.rowWeights = new double[]{Double.MIN_VALUE};
 		controlPanel.setLayout(gbl_controlPanel);
+		
+		JLabel spacingLbl = new JLabel("Grid Spacing");
+		JLabel timingLbl = new JLabel("Timing");
+		JLabel refreshLbl = new JLabel("Refresh Rate");
+		GridBagConstraints gbc_spacingLbl = new GridBagConstraints();
+		gbc_spacingLbl.insets = new Insets(0, 0, 5, 5);
+		gbc_spacingLbl.gridx = 0;
+		gbc_spacingLbl.gridy = 0;
+		controlPanel.add(spacingLbl, gbc_spacingLbl);
+		
+		GridBagConstraints gbc_timingLbl = new GridBagConstraints();
+		gbc_timingLbl.insets = new Insets(0, 0, 5, 5);
+		gbc_timingLbl.gridx = 0;
+		gbc_timingLbl.gridy = 1;
+		controlPanel.add(timingLbl, gbc_timingLbl);
+		
+		GridBagConstraints gbc_refreshLbl = new GridBagConstraints();
+		gbc_refreshLbl.insets = new Insets(0, 0, 5, 5);
+		gbc_refreshLbl.gridx = 0;
+		gbc_refreshLbl.gridy = 2;
+		controlPanel.add(refreshLbl, gbc_refreshLbl);
+		
 		
 		spacingSlider = new JSlider();
 		Hashtable<Integer, JLabel> spacingTicks = new Hashtable<Integer, JLabel>();
@@ -179,7 +199,7 @@ public class MasterGui {
 		});
 		GridBagConstraints gbc_spacingSlider = new GridBagConstraints();
 		gbc_spacingSlider.insets = new Insets(0, 0, 5, 5);
-		gbc_spacingSlider.gridx = 0;
+		gbc_spacingSlider.gridx = 1;
 		gbc_spacingSlider.gridy = 0;
 		gbc_spacingSlider.fill = GridBagConstraints.HORIZONTAL;
 		controlPanel.add(spacingSlider, gbc_spacingSlider);
@@ -200,7 +220,7 @@ public class MasterGui {
 		});
 		GridBagConstraints gbc_timeSlider = new GridBagConstraints();
 		gbc_timeSlider.insets = new Insets(0, 0, 5, 5);
-		gbc_timeSlider.gridx = 0;
+		gbc_timeSlider.gridx = 1;
 		gbc_timeSlider.gridy = 1;
 		gbc_timeSlider.fill = GridBagConstraints.HORIZONTAL;
 		controlPanel.add(timeSlider, gbc_timeSlider);
@@ -219,7 +239,7 @@ public class MasterGui {
 		});
 		GridBagConstraints gbc_refreshSlider = new GridBagConstraints();
 		gbc_refreshSlider.insets = new Insets(0, 0, 0, 5);
-		gbc_refreshSlider.gridx = 0;
+		gbc_refreshSlider.gridx = 1;
 		gbc_refreshSlider.gridy = 2;
 		gbc_refreshSlider.fill = GridBagConstraints.HORIZONTAL;
 		controlPanel.add(refreshSlider, gbc_refreshSlider);
@@ -236,6 +256,8 @@ public class MasterGui {
 					timeSlider.setEnabled(true);
 					refreshSlider.setEnabled(true);
 					pauseBtn.setEnabled(false);
+					if(pauseBtn.getText().equals("Resume"))
+						pauseBtn.setText("Pause");
 					endSimulation();
 					
 				}
@@ -256,7 +278,7 @@ public class MasterGui {
 		});
 		GridBagConstraints gbc_simulateBtn = new GridBagConstraints();
 		gbc_simulateBtn.insets = new Insets(0, 0, 5, 0);
-		gbc_simulateBtn.gridx = 1;
+		gbc_simulateBtn.gridx = 2;
 		gbc_simulateBtn.gridy = 1;
 		controlPanel.add(simulateBtn, gbc_simulateBtn);
 		
@@ -279,7 +301,7 @@ public class MasterGui {
 		
 		GridBagConstraints gbc_pauseBtn = new GridBagConstraints();
 		gbc_pauseBtn.insets = new Insets(2,2,5,5);
-		gbc_pauseBtn.gridx = 1;
+		gbc_pauseBtn.gridx = 2;
 		gbc_pauseBtn.gridy = 2;
 		controlPanel.add(pauseBtn, gbc_pauseBtn);
 		
