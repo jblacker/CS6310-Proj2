@@ -64,6 +64,7 @@ public class Simulation implements Runnable {
 	 * been enabled, runSimulation is either processed
 	 * in mThread or in the context of the caller. */
 	public void run() {
+		mCanceled = false;
 		Config config = Config.getInstance();
 		switch(config.getInitiative()){
 		case MASTER_CONTROL:

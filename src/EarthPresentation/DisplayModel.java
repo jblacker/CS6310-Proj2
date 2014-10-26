@@ -100,6 +100,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * how it should behave based on the flags set in the config singleton.
 	 */
 	public void run() {
+		isCancelled = false;
 		Config config = Config.getInstance();
 		running = true;
 		refreshTimer.start();
