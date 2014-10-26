@@ -4,21 +4,21 @@ import java.util.List;
 
 public class SimulationState {
 
-	private List<DataCell> cells;
+	private DataCell[][] cells;
 	private double sunLongitude;
 	private int runningTime;
 	
-	public SimulationState(List<DataCell> cells, double sunLong, int runningTime) {
+	public SimulationState(DataCell[][] cells, double sunLong, int runningTime) {
 		this.cells = cells;
 		this.sunLongitude = sunLong;
 		this.runningTime = runningTime;
 	}
 
-	public List<DataCell> getCells() {
+	public DataCell[][] getCells() {
 		return cells;
 	}
 
-	public void setCells(List<DataCell> cells) {
+	public void setCells(DataCell[][] cells) {
 		this.cells = cells;
 	}
 

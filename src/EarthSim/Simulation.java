@@ -190,7 +190,7 @@ public class Simulation implements Runnable {
 
 		/* Create the next simulation state. */
 		mNextSimulationState = new SimulationState(
-				mGrid.getCellList(),
+				mGrid.getCells(),
 				mSunLongitude,
 				mRunningTime);
 		

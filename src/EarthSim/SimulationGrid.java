@@ -20,6 +20,10 @@ public class SimulationGrid {
 	private DataCell[][] mCells;
 	
 	
+	public DataCell[][] getCells() {
+		return mCells;
+	}
+
 	public SimulationGrid(int spacing) {
 		mSpacing = spacing % 180;
 		mWidth = 360 / mSpacing;

@@ -52,6 +52,10 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private int newCanvasHeight;
 	private int newCanvasWidth;
 	
+	//Grid Size Parameters
+	private int rows;
+	private int cols;
+	
 	//timing flags
 	private boolean running;
 	private boolean imageReady;
@@ -263,7 +267,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 				return;
 		}
 		
-		List<DisplayCell> cells = generateDisplayCells(simState.getCells());
+		DataCell[][] cells = simState.getCells();
 		generateNextMapImage(cells);
 		generateSolarOverlayImage(simState.getSunLongitude());
 		generateCompositeMapImage();
@@ -276,50 +280,143 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * @param simData Data from Simulation
 	 * @return A list of converted DisplayCells
 	 */
-	private List<DisplayCell> generateDisplayCells(List<DataCell> simData) {
-		List<DisplayCell> displayCells = new ArrayList<DisplayCell>();
+//	private List<DisplayCell> generateDisplayCells(List<DataCell> simData) {
+//		List<DisplayCell> displayCells = new ArrayList<DisplayCell>();
+//		
+//		//calculate latitude & longitude for ALL cell points
+//		for(DataCell cell : simData) {
+//			displayCells.add(new DisplayCell(cell, this.gridSpacing));
+//		}
+//		
+//		return displayCells;
+//	}
+	
+	private Dimension calculateCellDimension() {
+		double latDegPerPixel = getDegreesPerPixel(LatLonEnum.LATITUDE);
+		int width = (int) Math.floor((latDegPerPixel * this.mapCanvasWidth) / this.gridSpacing);
 		
-		//calculate latitude & longitude for ALL cell points
-		for(DataCell cell : simData) {
-			displayCells.add(new DisplayCell(cell, this.gridSpacing));
+		double lonDegPerPixel = getDegreesPerPixel(LatLonEnum.LONGITUDE);
+		int height = (int)Math.floor((lonDegPerPixel * this.mapCanvasHeight) / this.gridSpacing);
+		
+		return new Dimension(width, height);
+	}
+	
+	private double getDegreesPerPixel(LatLonEnum latlon){
+		switch(latlon){
+			case LATITUDE:
+				return 360f / (double) this.mapCanvasWidth;
+			case LONGITUDE:
+				return 180f / (double) this.mapCanvasHeight;
+			default:
+				throw new IllegalArgumentException("Unknown Enum Value");
+		}
+	}
+	
+	private Color[][] calculateColors(DataCell[][] cells) {
+		Color[][] cellColors = new Color[this.cols][this.rows];
+		for(int i = 0; i < cols; i++){
+			for(int j = 0; j < rows; j++){
+				cellColors[i][j] = calculateColor(cells[i][j].getTemperature());
+			}
 		}
 		
-		return displayCells;
+		return cellColors;
+	}
+	
+	/**
+	 * Calculates and sets the color of the cell using the algorithm provided by the sample
+	 * in the assignment page.
+	 */
+	private static Color calculateColor(double temperature) {
+		//convert to Celsius for more accurate color values
+		double celsiusTemp = temperature - 273.15;
+		int temp = (int)Math.floor(celsiusTemp);
+		int red, blue, green;
+
+		if (temp <= -100) {
+			blue = 255;
+			green = 0;
+			red = 0;
+		}
+		else if (temp <= -46) {
+			temp = -1 * temp;
+			blue = 255;
+			green = 145 - (temp * 10) % 115;
+			red = 0;
+		}
+		else if (temp <= -23 && temp > -46) {
+			temp = -1 * temp;
+			blue = 255;
+			green = 145;
+			red = 145 + (temp * 5) % 115;
+		}
+		else if (temp < 0 && temp > -23) {
+			temp = -1 * temp;
+			blue = 255;
+			green = 145;
+			red = 145 - (temp * 5);
+		}
+		else if (temp == 0) {
+			blue = 225;
+			green = 145;
+			red = 145;
+		}
+		else if (temp > 0 && temp < 23) {
+			blue = 255;
+			green = 145 + (temp * 5);
+			red = 145;
+		}
+		else if (temp >= 23 && temp < 46) {
+			blue = 255 - (temp * 5) % 115;
+			green = 255;
+			red = 145;
+		}
+		else if (temp >= 46 && temp < 69) {
+			blue = 145;
+			green = 255;
+			red = 145 + (temp * 5) % 115;
+		}
+		else if (temp >= 69 && temp < 92) {
+			blue = 100;
+			green = 255 - (temp * 5) % 115;
+			red = 255;
+		}
+		else {
+			blue = 0;
+			green = 145 - (temp * 10) % 115;
+			red = 255;
+		}
+		
+		return new Color(red, green, blue);
 	}
 	
 	/**
 	 * Create the colored overlay of cells to represent the heating of the planet
-	 * @param cellData The converted simulation data
+	 * @param cells The converted simulation data
 	 */
-	private void generateNextMapImage(List<DisplayCell> cellData) {
+	private void generateNextMapImage(DataCell[][] cells) {
 		
 		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D graphics = null;
+		Dimension cellDimensions = calculateCellDimension();
+		Color[][] colors = calculateColors(cells);
 		try{
 			graphics = nextImage.createGraphics();		
 			
 			//set transparent to use as overlay
 			graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 			
-			//create polygon primitives for each cell
-			for(DisplayCell cell : cellData) {
-				Point ne = latLongToPoint(cell.getNeCorner());
-				Point sw = latLongToPoint(cell.getSwCorner());
-                Rectangle cellRect = new Rectangle(ne.x, ne.y, sw.x, sw.y);
-                graphics.setColor(cell.getColor());
-                graphics.fill(cellRect);
-                graphics.draw(cellRect);
-//                System.out.println(
-//                        "LAT NE: " + cell.getNeCorner().getLatitude() +
-//                        " NW: " + cell.getNwCorner().getLatitude()  +
-//                        " SE: " + cell.getSeCorner().getLatitude()  +
-//                        " SW: " + cell.getSwCorner().getLatitude());
-//                System.out.println(
-//                        "LON NE: " + cell.getNeCorner().getLongitude() +
-//                                " NW: " + cell.getNwCorner().getLongitude()  +
-//                                " SE: " + cell.getSeCorner().getLongitude()  +
-//                                " SW: " + cell.getSwCorner().getLongitude());
-				System.out.println("Coords- NE: " + ne.x +", " + ne.y + " SW: " + sw.x + ", " + sw.y);
+			//create rectangle primitives for each cell
+			int currentXPixel = 0;
+			int currentYPixel;
+			for(int i = 0; i < this.cols; i++){
+				currentYPixel = 0;
+				for(int j = 0; j < this.rows; j++){
+					graphics.setColor(colors[i][j]);
+					graphics.fillRect(currentXPixel, currentYPixel, cellDimensions.width, cellDimensions.height);
+					currentYPixel += cellDimensions.height;
+				}
+				currentXPixel += cellDimensions.width;
 			}
 			
 			this.temperatureMapImage = nextImage;
@@ -335,7 +432,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * @param solarLongitude The current longitude of the sun
 	 */
 	private void generateSolarOverlayImage(double solarLongitude) {
-		Point p = CalculateSolarMercatorPoint(solarLongitude);
+		Point p = calculateSolarPoint(solarLongitude);
 		
 		BufferedImage nextImage = new BufferedImage(mapCanvasWidth, mapCanvasHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		
@@ -393,7 +490,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		}
 	}
 
-	/** Loads the Mercator underlying map from disk from and scales it appropriately
+	/** Loads the underlying map from disk from and scales it appropriately
 	 * for the current size of the display 
 	 * @return BufferedImage of the Map scaled to the current display
 	 * @throws IOException When fails to locate the map image.
@@ -404,10 +501,10 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		try{
 			ClassLoader cl = getClass().getClassLoader();
 			File file = new File(cl.getResource("world-map.jpg").getFile());
-			BufferedImage mercatorMap = ImageIO.read(file);
+			BufferedImage map = ImageIO.read(file);
 			scaledImageGraphics = scaledMap.createGraphics();
 			
-			scaledImageGraphics.drawImage(mercatorMap, 0, 0, mapCanvasWidth, mapCanvasHeight, null);
+			scaledImageGraphics.drawImage(map, 0, 0, mapCanvasWidth, mapCanvasHeight, null);
 		}
 		finally{
 			if(scaledImageGraphics != null)
@@ -424,22 +521,22 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * @param coords Latitude & Longititude coordinates
 	 * @return Point on the canvas
 	 */
-	public Point latLongToPoint(GeoCoordinate coords) {
-		double x, y;
-		
-		x = (coords.getLongitude() + 180) / 360;
-        y = (coords.getLatitude() / (Math.cos(Math.toRadians(coords.getLatitude())) + 0.000001) + 90) / 360;
-		//double siny = Math.sin(Math.toRadians(coords.getLatitude()));
-		//y = 0.5 * Math.log((1 + siny) / (1 - siny)) / -(2 * Math.PI) + 0.5;
-		return new Point((int)(x * (double)this.mapCanvasWidth),(int)(y * (double)this.mapCanvasHeight));
-	}
-	
-	/**
-	 * Calculates the X coordinate on the canvas for the Solar Line using the Mercator projection algorithm
-	 * @param longitude
-	 * @return Topmost point of the canvas where the solar line's origin is located.
-	 */
-	public Point CalculateSolarMercatorPoint(double longitude) {
+//	public Point latLongToPoint(GeoCoordinate coords) {
+//		double x, y;
+//		
+//		x = (coords.getLongitude() + 180) / 360;
+//        y = (coords.getLatitude() / (Math.cos(Math.toRadians(coords.getLatitude())) + 0.000001) + 90) / 360;
+//		//double siny = Math.sin(Math.toRadians(coords.getLatitude()));
+//		//y = 0.5 * Math.log((1 + siny) / (1 - siny)) / -(2 * Math.PI) + 0.5;
+//		return new Point((int)(x * (double)this.mapCanvasWidth),(int)(y * (double)this.mapCanvasHeight));
+//	}
+//	
+//	/**
+//	 * Calculates the X coordinate on the canvas for the Solar Line using the Mercator projection algorithm
+//	 * @param longitude
+//	 * @return Topmost point of the canvas where the solar line's origin is located.
+//	 */
+	public Point calculateSolarPoint(double longitude) {
         //System.out.printf("display: %s\n", longitude);
 		double x = (longitude + 180) * (this.mapCanvasWidth / 360);
 		x = Math.floor(x);
@@ -571,5 +668,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 */
 	public void setGridSpacing(int gridSpacing) {
 		this.gridSpacing = gridSpacing;
+		this.rows = 180 / this.gridSpacing;
+		this.cols = 360 / this.gridSpacing;
 	}
 }
