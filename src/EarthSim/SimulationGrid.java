@@ -47,7 +47,7 @@ public class SimulationGrid {
 		mWidth = other.mWidth;
 		mHeight = other.mHeight;
 		
-		/* Perfrom deep copy of 2D data cell array. */
+		/* Perform deep copy of 2D data cell array. */
 		mCells = new DataCell[mWidth][mHeight];
 		for (int x = 0; x < mWidth; x++) {
 			for (int y = 0; y < mHeight; y++) {
@@ -62,7 +62,6 @@ public class SimulationGrid {
 	public double cellIndexToLatitude(int yIndex) {
 		return (yIndex - (mHeight / 2f)) * mSpacing;
 	}
-	
 
 	/*
 	 * Convert x-index to the longitude of the center of the cell.
@@ -73,29 +72,6 @@ public class SimulationGrid {
 		else
 			return 360f - (xIndex + 1) * mSpacing;	
 	}
-	
-	public int getSpacing() {
-		return mSpacing;
-	}
-	
-	public int getWidth() {
-		return mWidth;
-	}
-	
-	public int getHeight() {
-		return mHeight;
-	}
-	
-	/*
-	 * Convert Longitude and Latitude into an index into the temperature value
-	 * array.
-	 */
-	public int[] getCellIndex(double latitude, double longitude) {
-		return new int[] {
-				(int) Math.floor(longitude / (double) mSpacing) + mWidth / 2,
-				(int) Math.floor(latitude / (double) mSpacing) + mWidth / 2 };
-	}
-	
 	
 	/* Get DataCell object from grid. */
 	public DataCell getCellFromIndex(int[] index) {
@@ -162,7 +138,6 @@ public class SimulationGrid {
 		int index = 0;
 		for (int x = 0; x < mWidth; x++) {
 			for (int y = 0; y < mHeight; y++) {
-                //System.out.printf("temp: %f\n", getCellFromIndex(x,y).getTemperature());
 				list.add(index++, getCellFromIndex(x, y));
 			}
 		}
@@ -186,15 +161,12 @@ public class SimulationGrid {
 						cell.getLatitude(),
 						cell.getLongitude(),
 						sunLongitude);
-                //System.out.printf("attn: %f,%f,%f,%f\n", sunLongitude, cell.getLatitude(), cell.getLongitude(), attenuation);
 
 				/* Calculate the heating from the sun */
 				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * 4 * attenuation * 2;
-                //System.out.printf("%f\n", Th);
 
 				/* Calculate cooling. */
 				double Tc = beta * Constants.AVERAGE_EARTH_TEMPERATURE;
-                //System.out.printf("%f %f\n", Th, Tc);
 
 				cell.setTemperature(cell.getTemperature() + Th - Tc);
 			}

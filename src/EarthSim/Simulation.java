@@ -5,7 +5,6 @@ import java.util.concurrent.BlockingQueue;
 import EarthPresentation.DisplayModel;
 
 import core.Config;
-import core.InitiativeEnum;
 import core.SimulationState;
 import core.ThreadedEnum;
 
@@ -24,20 +23,10 @@ public class Simulation implements Runnable {
 	private SimulationState mNextSimulationState;
 	/* Queue used to send data to the presentation. */
 	private BlockingQueue<SimulationState> mQueue;
-	
-	/* Flag indicating whether the simulation has the initiative. */
-	private boolean mInitiative = false;
-	/* Flag indicating whether the simulation is run on its own
-	 * thread. */
-	private boolean mActive = false;
-	
 	/* State flag indicating that the simulation is to be canceled. */
 	private volatile boolean mCanceled = false;
 	/* State flag indicating that the simulation has been paused. */
 	private volatile boolean mPaused = false;
-	/* State flag indicating that a call to run() is to be handled
-	 * asynchronously. */
-	private boolean mToRun = false;
 
 
 	public Simulation(int spacing,
@@ -53,11 +42,7 @@ public class Simulation implements Runnable {
 		mGrid = new SimulationGrid(spacing);
 		
 		mQueue = Config.getInstance().getBuffer();
-		mInitiative = (Config.getInstance().getInitiative() ==
-				InitiativeEnum.SIMULATION);
-		mActive = Config.getInstance().getThreadingFlags()
-				.contains(ThreadedEnum.SIMULATION);
-		}
+	}
 
 	/* Run the simulation until the buffer s full.
 	 * Depending on whether the simulation thread has
@@ -162,12 +147,12 @@ public class Simulation implements Runnable {
 	public void pause() {
 		mPaused = true;
 	}
-	
+
 	/* Resume a paused simulation. */
 	public void resume() {
 		mPaused = false;
 	}
-	
+
 	/* Force stop the simulation on its next iteration. */
 	public void cancel() {
 		mCanceled = true;
@@ -192,8 +177,7 @@ public class Simulation implements Runnable {
 		/* Create the next simulation state. */
 		mNextSimulationState = new SimulationState(
 				mGrid.getCells(),
-				mSunLongitude,
-				mRunningTime);
+				mSunLongitude);
 		
 		/* Advance running time. */
 		mRunningTime += mTimestep;

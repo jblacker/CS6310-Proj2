@@ -12,18 +12,6 @@ public class DataCell implements Cloneable {
 	private double area;
 	private double temperature;
 	
-	public DataCell() {
-		this.latitude = 0f;
-		this.longitude = 0f;
-		this.height = 0f;
-		this.sideLength = 0f;
-		this.upperWidth = 0f;
-		this.lowerWidth = 0f;
-		this.perimeter = 0f;
-		this.area = 0f;
-		this.temperature = 0f;
-	}
-	
 	public DataCell(DataCell other) {
 		this.latitude = other.latitude;
 		this.longitude = other.longitude;
@@ -34,30 +22,6 @@ public class DataCell implements Cloneable {
 		this.perimeter = other.perimeter;
 		this.area = other.area;
 		this.temperature = other.temperature;
-	}
-	
-	public DataCell(double lat, double lon, double height, double sideLength, double uWidth, double lWidth) {
-		this.latitude = lat;
-		this.longitude = lon;
-		this.height = height;
-		this.sideLength = sideLength;
-		this.upperWidth = uWidth;
-		this.lowerWidth = lWidth;
-		this.perimeter = calculatePerimeter();
-		this.area = calculateArea();
-		this.temperature = 0f;
-	}
-	
-	public DataCell(double lat, double lon, double height, double sideLength, double uWidth, double lWidth, double temp) {
-		this.latitude = lat;
-		this.longitude = lon;
-		this.height = height;
-		this.sideLength = sideLength;
-		this.upperWidth = uWidth;
-		this.lowerWidth = lWidth;
-		this.perimeter = calculatePerimeter();
-		this.area = calculateArea();
-		this.temperature = temp;
 	}
 
 	public DataCell(double lat, double lon, int spacing, double temp) {
