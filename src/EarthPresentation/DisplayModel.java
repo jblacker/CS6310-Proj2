@@ -588,14 +588,6 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			imageReady = false;
 		}
 	}
-	
-	/**
-	 * Allows an outside object to check if the Model is currently running
-	 * @return True if running and threaded, otherwise false.
-	 */
-	public synchronized boolean isRunning() {
-		return running;
-	}
 
 	/**
 	 * INCOMPLETE!  This gets the current running time of the model.  This may want to be fixed
@@ -627,14 +619,6 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		}
 		
 		this.rescaleMap = true;
-	}
-
-	/**
-	 * Gets the current grid spacing
-	 * @return Spacing in degrees
-	 */
-	public int getGridSpacing() {
-		return gridSpacing;
 	}
 
 	/**
