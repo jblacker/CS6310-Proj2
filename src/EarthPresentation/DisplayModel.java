@@ -59,7 +59,6 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	private boolean rescaleMap;
 	private long startTime;
 	private long stopTime;
-	private int timeStep;
 	private int refreshRate;
 	
 	//used for DisplayCell calculations
@@ -70,23 +69,12 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		this.mapCanvasWidth = width;
 		this.refreshRate = 1000;
 		this.refreshTimer = new Timer(refreshRate, this); //default?
-		this.timeStep = 1; //default?
 		this.hasInitative = initiative;
 	}
 	
-	public DisplayModel(int height, int width, int timeStep, Boolean initiative) {
+	public DisplayModel(int height, int width, int refreshRate, Boolean initiative) {
 		this.mapCanvasHeight = height;
 		this.mapCanvasWidth = width;
-		this.timeStep = timeStep;
-		this.refreshRate = 1000; 
-		this.refreshTimer = new Timer(refreshRate, this);
-		this.hasInitative = initiative;
-	}
-	
-	public DisplayModel(int height, int width, int timeStep, int refreshRate, Boolean initiative) {
-		this.mapCanvasHeight = height;
-		this.mapCanvasWidth = width;
-		this.timeStep = timeStep;
 		this.refreshRate = refreshRate;
 		this.refreshTimer = new Timer(refreshRate, this);
 		this.hasInitative = initiative;
