@@ -11,7 +11,20 @@ public class SimulationState {
 		this.cells = cells;
 		this.sunLongitude = sunLong;
 		this.runningTime = runningTime;
+        printAverageTemp();
 	}
+
+    private void printAverageTemp() {
+        double count = 0;
+        double sum = 0;
+        for (DataCell[] d_col : cells) {
+            for (DataCell d : d_col) {
+                count++;
+                sum += d.getTemperature();
+            }
+        }
+        System.out.printf("%f\n", sum / count);
+    }
 
 	public DataCell[][] getCells() {
 		return cells;

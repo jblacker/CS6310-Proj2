@@ -143,11 +143,12 @@ public class SimulationGrid {
 				DataCell east = getCellFromIndex(other.getEastNeighbor(index));
 				DataCell west = getCellFromIndex(other.getWestNeighbor(index));
 
-				double newTemperature = (cell.getUpperWidth() * north.getTemperature()
-						+ cell.getLowerWidth() * south.getTemperature()
-						+ cell.getHeight() * east.getTemperature() + cell.getHeight()
-						* west.getTemperature())
-						/ cell.getPerimeter();
+				double newTemperature =
+                        (cell.getUpperWidth() * north.getTemperature() / north.getArea()
+						+ cell.getLowerWidth() * south.getTemperature() / south.getArea()
+						+ cell.getHeight() * east.getTemperature() / east.getArea()
+                        + cell.getHeight() * west.getTemperature() / west.getArea())
+						/ cell.getPerimeter() * cell.getArea();
 
 				cell.setTemperature(newTemperature);
 			}
@@ -188,7 +189,7 @@ public class SimulationGrid {
                 //System.out.printf("attn: %f,%f,%f,%f\n", sunLongitude, cell.getLatitude(), cell.getLongitude(), attenuation);
 
 				/* Calculate the heating from the sun */
-				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * 4 * attenuation;
+				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * 4 * attenuation * 2;
                 //System.out.printf("%f\n", Th);
 
 				/* Calculate cooling. */
