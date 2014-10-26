@@ -188,7 +188,7 @@ public class SimulationGrid {
                 //System.out.printf("attn: %f,%f,%f,%f\n", sunLongitude, cell.getLatitude(), cell.getLongitude(), attenuation);
 
 				/* Calculate the heating from the sun */
-				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * attenuation;
+				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * 4 * attenuation;
                 //System.out.printf("%f\n", Th);
 
 				/* Calculate cooling. */

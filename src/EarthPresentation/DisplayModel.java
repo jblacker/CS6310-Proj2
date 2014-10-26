@@ -326,6 +326,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * in the assignment page.
 	 */
 	private static Color calculateColor(double temperature) {
+        System.out.printf("%f\n", temperature);
 		//convert to Celsius for more accurate color values
 		double celsiusTemp = temperature - 273.15;
 		int temp = (int)Math.floor(celsiusTemp);
