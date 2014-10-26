@@ -6,14 +6,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 
 import javax.imageio.ImageIO;
@@ -292,16 +289,17 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 //	}
 	
 	private Dimension calculateCellDimension() {
-		double latDegPerPixel = getDegreesPerPixel(LatLonEnum.LATITUDE);
-		int width = (int) Math.floor((latDegPerPixel * this.mapCanvasWidth) / this.gridSpacing);
+		double latDegPerPixel = getPixelsPerDegree(LatLonEnum.LATITUDE);
 		
-		double lonDegPerPixel = getDegreesPerPixel(LatLonEnum.LONGITUDE);
-		int height = (int)Math.floor((lonDegPerPixel * this.mapCanvasHeight) / this.gridSpacing);
+		int width = (int) Math.floor(latDegPerPixel * this.gridSpacing);
+		
+		double lonDegPerPixel = getPixelsPerDegree(LatLonEnum.LONGITUDE);
+		int height = (int) Math.floor(lonDegPerPixel * this.gridSpacing);
 		
 		return new Dimension(width, height);
 	}
 	
-	private double getDegreesPerPixel(LatLonEnum latlon){
+	private double getPixelsPerDegree(LatLonEnum latlon){
 		switch(latlon){
 			case LATITUDE:
 				return (double) this.mapCanvasWidth / 360f;
