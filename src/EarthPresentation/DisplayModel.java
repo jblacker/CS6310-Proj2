@@ -491,7 +491,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * @return Topmost point of the canvas where the solar line's origin is located.
 	 */
 	public Point calculateSolarPoint(double longitude) {
-		double pixelsPerDegree = getPixelsPerDegree(LatLonEnum.LONGITUDE);
+		double pixelsPerDegree = getPixelsPerDegree(LatLonEnum.LATITUDE);
 		double x = (longitude + 180) * pixelsPerDegree;
 		x = Math.floor(x);
 		System.out.printf("display: %s\n", longitude);
