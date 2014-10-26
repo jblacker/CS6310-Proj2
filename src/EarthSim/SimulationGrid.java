@@ -107,12 +107,12 @@ public class SimulationGrid {
 	
 	/* Calculate West neighbor. */
 	public int[] getWestNeighbor(int[] index) {
-		return new int[] { (index[0] + 1) % mWidth, index[1] };
+		return new int[] { (index[0] - 1 + mWidth) % mWidth, index[1] };
 	}
 
 	/* Calculate West neighbor. */
 	public int[] getEastNeighbor(int[] index) {
-		return new int[] { (index[0] - 1 + mWidth) % mWidth, index[1]};
+		return new int[] { (index[0] + 1) % mWidth, index[1]};
 	}
 
 	/* Calculate North neighbor. */
@@ -203,18 +203,13 @@ public class SimulationGrid {
 	
 	/* Calculate attenuation. */
 	private double calculateAttenuation(double lat, double lon, double sunLon) {
+        double attn = 0;
 		double d = Math.abs(lon - sunLon);
         if (Math.signum(lon) != Math.signum(sunLon)) {
             d = 360 - d;
         }
-//		if (lon >= 0)
-//			d = Math.abs(360 - lon - sunLon);
-//		else
-//			d = Math.abs(-lon - sunLon);
-        //System.out.printf("%f\n", d);
 		if (d < 90)
-			return Math.cos(Math.toRadians(d)) * Math.cos(Math.toRadians(lat));
-		else
-			return 0;
+            attn = Math.cos(Math.toRadians(d)) * Math.cos(Math.toRadians(lat));
+		return attn;
 	}
 }

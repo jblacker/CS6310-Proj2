@@ -198,11 +198,6 @@ public class Simulation implements Runnable {
 		mRunningTime += mTimestep;
 		
 		/* Advance the sun for the next simulation state. */
-		mSunLongitude = ((mRunningTime+720) % 1440) * 360 / 1440 - 180;
+		mSunLongitude = 180 - ((mRunningTime+720) % 1440) * 360 / 1440;
 	}
-	
-//	boolean enqueueNextSimulationState() {
-//		return mQueue.add(mNextSimulationState);
-//	}
-	
 }

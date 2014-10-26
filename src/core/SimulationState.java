@@ -11,7 +11,7 @@ public class SimulationState {
 		this.cells = cells;
 		this.sunLongitude = sunLong;
 		this.runningTime = runningTime;
-        printAverageTemp();
+        //printAverageTemp();
 	}
 
     private void printAverageTemp() {
