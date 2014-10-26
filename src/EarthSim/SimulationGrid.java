@@ -25,7 +25,7 @@ public class SimulationGrid {
 	}
 
 	public SimulationGrid(int spacing) {
-		mSpacing = spacing % 180;
+		mSpacing = ((spacing-1) % 180) + 1;
 		mWidth = 360 / mSpacing;
 		mHeight = 180 / mSpacing;
 		mCells = new DataCell[mWidth][mHeight];
