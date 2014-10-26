@@ -240,7 +240,9 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		if(hasInitative == null || !hasInitative){
 			try{
 				//if we don't have initiative block dequeue from buffer
+				long startTake = System.nanoTime();
 				simState = Config.getInstance().getBuffer().take();
+				System.out.print("Idle time: " + (System.nanoTime() - startTake) + " ns\n");
 			}
 			catch(InterruptedException ex) {
 				return;
@@ -248,9 +250,11 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		}
 		else {
 			//We have initiative.  DO NOT BLOCK!
+			long startTime = System.nanoTime();
 			simState = Config.getInstance().getBuffer().poll();
 			if(simState == null)
 				return;
+			System.out.print("Idle time: " + (System.nanoTime() - startTime) + " ns\n");
 		}
 		
 		DataCell[][] cells = simState.getCells();
