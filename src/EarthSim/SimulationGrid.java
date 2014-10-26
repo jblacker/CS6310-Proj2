@@ -27,7 +27,7 @@ public class SimulationGrid {
 		mCells = new DataCell[mWidth][mHeight];
 		
 		for (int x = 0; x < mWidth; x++) {
-			double longitude = cellIndexToLatitude(x);
+			double longitude = cellIndexToLongitude(x);
 			for (int y = 0; y < mHeight; y++) {
 				mCells[x][y] = new DataCell(
 						cellIndexToLatitude(y),
@@ -157,7 +157,7 @@ public class SimulationGrid {
 		int index = 0;
 		for (int x = 0; x < mWidth; x++) {
 			for (int y = 0; y < mHeight; y++) {
-                System.out.printf("temp: %f\n", getCellFromIndex(x,y).getTemperature());
+                //System.out.printf("temp: %f\n", getCellFromIndex(x,y).getTemperature());
 				list.add(index++, getCellFromIndex(x, y));
 			}
 		}

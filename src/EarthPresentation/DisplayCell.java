@@ -39,10 +39,10 @@ public class DisplayCell {
 	 * of each corner of the cell
 	 */
 	public void processCalculations() {
-		swCorner = new GeoCoordinate(this.swCornerLatitude, this.swCornerLongitiude);
-		seCorner = calculateCoordinateForPoint(DirectionEnum.SOUTHEAST);
-		nwCorner = calculateCoordinateForPoint(DirectionEnum.NORTHWEST);
-		neCorner = calculateCoordinateForPoint(DirectionEnum.NORTHEAST);
+		swCorner = new GeoCoordinate(swCornerLatitude, swCornerLongitiude);
+		seCorner = new GeoCoordinate(swCornerLatitude, swCornerLongitiude + gridSpacing);
+		nwCorner = new GeoCoordinate(swCornerLatitude + gridSpacing, swCornerLongitiude);
+		neCorner = new GeoCoordinate(swCornerLatitude + gridSpacing, swCornerLongitiude + gridSpacing);
 		
 	}
 	
@@ -76,51 +76,51 @@ public class DisplayCell {
 	 * @param direction GeoDirection from the Origin
 	 * @return GeoCoordinate containing the latitude & longitude for that point
 	 */
-	public GeoCoordinate calculateCoordinateForPoint(DirectionEnum direction) {	
-		double bearing;
-		double distance;
-		double lat1, lat2;
-		double lon1, lon2;	
-		
-		switch(direction){
-			case NORTHWEST:
-				distance = calculateCellSides();
-				double sin = height / distance;
-				bearing = Math.asin(sin); //in radians!
-				break;
-			case SOUTHEAST:
-				bearing = Math.toRadians(90);
-				distance = this.widthBottom;
-				break;
-			case NORTHEAST:
-				double modifiedBaseLength;
-				if(this.widthBottom > this.widthTop)
-					modifiedBaseLength = this.widthBottom - calculateBaseDifference();
-				else
-					modifiedBaseLength = this.widthTop - calculateBaseDifference();
-				
-				distance = Math.sqrt(Math.pow(modifiedBaseLength, 2) + Math.pow(height, 2));
-				double tempSin = height / distance;
-				bearing = Math.asin(tempSin); //in radians!
-				break;
-			default:
-				throw new IllegalArgumentException("Invalid Direction Enum Value");
-		}
-		
-		//convert to radians
-		lat1 = Math.toRadians(swCorner.getLatitude());
-		lon1 = Math.toRadians(swCorner.getLongitude());
-		
-		//calculate latitude of point
-		lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance / core.Constants.EARTH_RADIUS) +
-				Math.cos(lat1) * Math.sin(distance / core.Constants.EARTH_RADIUS) * Math.cos(bearing));
-		
-		//calculate longitude of point
-		lon2 = lon1 + Math.atan2(Math.sin(bearing) * Math.sin(distance / core.Constants.EARTH_RADIUS) * Math.cos(lat1), 
-				Math.cos(distance / core.Constants.EARTH_RADIUS) - Math.sin(lat1) * Math.sin(lat2));
-		
-		return new GeoCoordinate(Math.toDegrees(lat2), Math.toDegrees(lon2));
-	}
+//	public GeoCoordinate calculateCoordinateForPoint(DirectionEnum direction) {
+//		double bearing;
+//		double distance;
+//		double lat1, lat2;
+//		double lon1, lon2;
+//
+//		switch(direction){
+//			case NORTHWEST:
+//				distance = calculateCellSides();
+//				double sin = height / distance;
+//				bearing = Math.asin(sin); //in radians!
+//				break;
+//			case SOUTHEAST:
+//				bearing = Math.toRadians(90);
+//				distance = this.widthBottom;
+//				break;
+//			case NORTHEAST:
+//				double modifiedBaseLength;
+//				if(this.widthBottom > this.widthTop)
+//					modifiedBaseLength = this.widthBottom - calculateBaseDifference();
+//				else
+//					modifiedBaseLength = this.widthTop - calculateBaseDifference();
+//
+//				distance = Math.sqrt(Math.pow(modifiedBaseLength, 2) + Math.pow(height, 2));
+//				double tempSin = height / distance;
+//				bearing = Math.asin(tempSin); //in radians!
+//				break;
+//			default:
+//				throw new IllegalArgumentException("Invalid Direction Enum Value");
+//		}
+//
+//		//convert to radians
+//		lat1 = Math.toRadians(swCorner.getLatitude());
+//		lon1 = Math.toRadians(swCorner.getLongitude());
+//
+//		//calculate latitude of point
+//		lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance / core.Constants.EARTH_RADIUS) +
+//				Math.cos(lat1) * Math.sin(distance / core.Constants.EARTH_RADIUS) * Math.cos(bearing));
+//
+//		//calculate longitude of point
+//		lon2 = lon1 + Math.atan2(Math.sin(bearing) * Math.sin(distance / core.Constants.EARTH_RADIUS) * Math.cos(lat1),
+//				Math.cos(distance / core.Constants.EARTH_RADIUS) - Math.sin(lat1) * Math.sin(lat2));
+//
+//		return new GeoCoordinate(Math.toDegrees(lat2), Math.toDegrees(lon2));
+//	}
 
 	/**
 	 * Gets the cell's color publicly

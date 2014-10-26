@@ -6,7 +6,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -303,20 +303,23 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			
 			//create polygon primitives for each cell
 			for(DisplayCell cell : cellData) {
-				Polygon cellPolygon = new Polygon();
 				Point ne = latLongToPoint(cell.getNeCorner());
-				Point nw = latLongToPoint(cell.getNwCorner());
-				Point se = latLongToPoint(cell.getSeCorner());
 				Point sw = latLongToPoint(cell.getSwCorner());
-				System.out.println("Coords- NE: " + ne.x +", " + ne.y + " NW: " + nw.x + ", " + nw.y + " SW: " + sw.x + ", " + sw.y +
-						" SE: " + se.x + ", " + se.y); 
-				cellPolygon.addPoint(ne.x, ne.y);
-				cellPolygon.addPoint(nw.x, nw.y);
-				cellPolygon.addPoint(se.x, se.y);
-				cellPolygon.addPoint(sw.x, sw.y);
-				
-				graphics.setColor(cell.getColor());
-				graphics.fillPolygon(cellPolygon);
+                Rectangle cellRect = new Rectangle(ne.x, ne.y, sw.x, sw.y);
+                graphics.setColor(cell.getColor());
+                graphics.fill(cellRect);
+                graphics.draw(cellRect);
+//                System.out.println(
+//                        "LAT NE: " + cell.getNeCorner().getLatitude() +
+//                        " NW: " + cell.getNwCorner().getLatitude()  +
+//                        " SE: " + cell.getSeCorner().getLatitude()  +
+//                        " SW: " + cell.getSwCorner().getLatitude());
+//                System.out.println(
+//                        "LON NE: " + cell.getNeCorner().getLongitude() +
+//                                " NW: " + cell.getNwCorner().getLongitude()  +
+//                                " SE: " + cell.getSeCorner().getLongitude()  +
+//                                " SW: " + cell.getSwCorner().getLongitude());
+				System.out.println("Coords- NE: " + ne.x +", " + ne.y + " SW: " + sw.x + ", " + sw.y);
 			}
 			
 			this.temperatureMapImage = nextImage;
@@ -424,11 +427,11 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	public Point latLongToPoint(GeoCoordinate coords) {
 		double x, y;
 		
-		x = (coords.getLongitude() - 90) / 360 + 0.5;
-
-		double siny = Math.sin(Math.toRadians(coords.getLatitude()));
-		y = 0.5 * Math.log((1 + siny) / (1 - siny)) / -(2 * Math.PI) + 0.5;
-		return new Point((int)(x * this.mapCanvasWidth),(int)(y * this.mapCanvasHeight));
+		x = (coords.getLongitude() + 180) / 360;
+        y = (coords.getLatitude() / (Math.cos(Math.toRadians(coords.getLatitude())) + 0.000001) + 90) / 360;
+		//double siny = Math.sin(Math.toRadians(coords.getLatitude()));
+		//y = 0.5 * Math.log((1 + siny) / (1 - siny)) / -(2 * Math.PI) + 0.5;
+		return new Point((int)(x * (double)this.mapCanvasWidth),(int)(y * (double)this.mapCanvasHeight));
 	}
 	
 	/**
