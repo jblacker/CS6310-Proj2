@@ -271,23 +271,6 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		imageReady = true; //notify view outside of refresh rate
 	}
 	
-	/**
-	 * Converts DataCells to DisplayCells.  In doing so additional calculations are performed
-	 * to properly determine latitude & longitude of all sides of the cell for conversion to X & Y coords.
-	 * @param simData Data from Simulation
-	 * @return A list of converted DisplayCells
-	 */
-//	private List<DisplayCell> generateDisplayCells(List<DataCell> simData) {
-//		List<DisplayCell> displayCells = new ArrayList<DisplayCell>();
-//		
-//		//calculate latitude & longitude for ALL cell points
-//		for(DataCell cell : simData) {
-//			displayCells.add(new DisplayCell(cell, this.gridSpacing));
-//		}
-//		
-//		return displayCells;
-//	}
-	
 	private Dimension calculateCellDimension() {
 		double latDegPerPixel = getPixelsPerDegree(LatLonEnum.LATITUDE);
 		
@@ -326,7 +309,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * in the assignment page.
 	 */
 	private static Color calculateColor(double temperature) {
-        System.out.printf("%f\n", temperature);
+        //System.out.printf("%f\n", temperature);
 		//convert to Celsius for more accurate color values
 		double celsiusTemp = temperature - 273.15;
 		int temp = (int)Math.floor(celsiusTemp);
@@ -513,32 +496,17 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		this.rescaleMap = false;
 		return scaledMap;
 	}
-
+	
 	/**
-	 * Converts Latitude & Longitude into an (X,Y) point on the canvas using the
-	 * Mercator projection algorithm.
-	 * @param coords Latitude & Longititude coordinates
-	 * @return Point on the canvas
+	 * Calculates the X coordinate on the canvas for the Solar Line using the Mercator projection algorithm
+	 * @param longitude
+	 * @return Topmost point of the canvas where the solar line's origin is located.
 	 */
-//	public Point latLongToPoint(GeoCoordinate coords) {
-//		double x, y;
-//		
-//		x = (coords.getLongitude() + 180) / 360;
-//        y = (coords.getLatitude() / (Math.cos(Math.toRadians(coords.getLatitude())) + 0.000001) + 90) / 360;
-//		//double siny = Math.sin(Math.toRadians(coords.getLatitude()));
-//		//y = 0.5 * Math.log((1 + siny) / (1 - siny)) / -(2 * Math.PI) + 0.5;
-//		return new Point((int)(x * (double)this.mapCanvasWidth),(int)(y * (double)this.mapCanvasHeight));
-//	}
-//	
-//	/**
-//	 * Calculates the X coordinate on the canvas for the Solar Line using the Mercator projection algorithm
-//	 * @param longitude
-//	 * @return Topmost point of the canvas where the solar line's origin is located.
-//	 */
 	public Point calculateSolarPoint(double longitude) {
-        //System.out.printf("display: %s\n", longitude);
-		double x = (longitude + 180) * (this.mapCanvasWidth / 360);
+		double pixelsPerDegree = getPixelsPerDegree(LatLonEnum.LONGITUDE);
+		double x = (longitude + 180) * pixelsPerDegree;
 		x = Math.floor(x);
+		System.out.printf("display: %s\n", longitude);
 		
 		return new Point((int)x, 0);
 	}
