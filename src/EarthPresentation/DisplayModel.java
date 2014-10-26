@@ -492,14 +492,33 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 	 * @return Topmost point of the canvas where the solar line's origin is located.
 	 */
 	public Point calculateSolarPoint(double longitude) {
+        printPerformanceMetrics();
 		double pixelsPerDegree = getPixelsPerDegree(LatLonEnum.LATITUDE);
 		double x = (longitude + 180) * pixelsPerDegree;
 		x = Math.floor(x);
-		System.out.printf("display: %s\n", longitude);
-		
 		return new Point((int)x, 0);
 	}
-	
+
+    private static long lastTime = 0;
+    private static long count = 0;
+    private static double averageTime = 0;
+
+    private static void printPerformanceMetrics() {
+        if (lastTime == 0) {
+            lastTime = System.currentTimeMillis();
+        }
+        else {
+            long nextTime = System.currentTimeMillis();
+            double timeDiff = (nextTime - lastTime);
+            lastTime = nextTime;
+            count++;
+            averageTime = (averageTime * (double)(count-1) + timeDiff) / (double)count;
+            if (count % 10 == 0) {
+                System.out.printf("Iteration time: %f avg: %f\n", timeDiff, averageTime);
+            }
+        }
+    }
+
 	/**
 	 * When new dimensions are provided mid-simulation this function commits 
 	 * them to the object to be used in subsequent calculations.
