@@ -354,12 +354,12 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 			red = 145;
 		}
 		else if (temp >= 46 && temp < 69) {
-			blue = 145;
+			blue = 100;
 			green = 255;
 			red = 145 + (temp * 5) % 115;
 		}
 		else if (temp >= 69 && temp < 92) {
-			blue = 100;
+			blue = 50;
 			green = 255 - (temp * 5) % 115;
 			red = 255;
 		}
