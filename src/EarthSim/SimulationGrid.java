@@ -175,7 +175,11 @@ public class SimulationGrid {
 		for (int x = 0; x < mWidth; x++) {
 			for (int y = 0; y < mHeight; y++) {
 				DataCell cell = getCellFromIndex(x, y);
-				
+
+                /* Calculate fraction of surface area of the earth occupied
+                 * by the cell. */
+                double beta = cell.getArea() / Constants.EARTH_SURFACE_AREA;
+
 				/* Calculate attenuation. */
 				double attenuation = calculateAttenuation(
 						cell.getLatitude(),
@@ -184,11 +188,10 @@ public class SimulationGrid {
                 //System.out.printf("attn: %f,%f,%f,%f\n", sunLongitude, cell.getLatitude(), cell.getLongitude(), attenuation);
 
 				/* Calculate the heating from the sun */
-				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * attenuation;
+				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * attenuation;
                 //System.out.printf("%f\n", Th);
 
 				/* Calculate cooling. */
-				double beta = cell.getArea() / Constants.EARTH_SURFACE_AREA;
 				double Tc = beta * Constants.AVERAGE_EARTH_TEMPERATURE;
                 //System.out.printf("%f %f\n", Th, Tc);
 
@@ -199,11 +202,14 @@ public class SimulationGrid {
 	
 	/* Calculate attenuation. */
 	private double calculateAttenuation(double lat, double lon, double sunLon) {
-		double d;
-		if (lon >= 0)
-			d = Math.abs(360 - lon - sunLon);
-		else
-			d = Math.abs(-lon - sunLon);
+		double d = Math.abs(lon - sunLon);
+        if (Math.signum(lon) != Math.signum(sunLon)) {
+            d = 360 - d;
+        }
+//		if (lon >= 0)
+//			d = Math.abs(360 - lon - sunLon);
+//		else
+//			d = Math.abs(-lon - sunLon);
         //System.out.printf("%f\n", d);
 		if (d < 90)
 			return Math.cos(Math.toRadians(d)) * Math.cos(Math.toRadians(lat));
