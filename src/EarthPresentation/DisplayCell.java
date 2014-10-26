@@ -13,6 +13,7 @@ public class DisplayCell {
 	private final double widthTop;
 	private final double widthBottom;
 	private final int gridSpacing;
+	private final double QUARTERPI = Math.PI / 4;
 	
 	private GeoCoordinate swCorner;
 	private GeoCoordinate seCorner;
