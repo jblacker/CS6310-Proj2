@@ -88,8 +88,8 @@ public class MasterGui {
 		controlPanel.setLayout(gbl_controlPanel);
 		
 		JLabel spacingLbl = new JLabel("Grid Spacing");
-		JLabel timingLbl = new JLabel("Timing");
-		JLabel refreshLbl = new JLabel("Refresh Rate");
+		JLabel timingLbl = new JLabel("<html><center>Timing<br>(minutes)</center></html>");
+		JLabel refreshLbl = new JLabel("<html><center>Refresh Rate<br>(ms)</center></html>");
 		GridBagConstraints gbc_spacingLbl = new GridBagConstraints();
 		gbc_spacingLbl.insets = new Insets(0, 0, 5, 5);
 		gbc_spacingLbl.gridx = 0;
@@ -209,6 +209,8 @@ public class MasterGui {
 		timeSlider.setMaximum(1440);
 		timeSlider.setMajorTickSpacing(100);
 		timeSlider.setMinorTickSpacing(10);
+		timeSlider.setLabelTable(timeSlider.createStandardLabels(719));
+		timeSlider.setPaintLabels(true);
 		timeSlider.setPaintTicks(true);
 		timeSlider.setSnapToTicks(true);
 		timeSlider.addChangeListener(new ChangeListener(){
@@ -226,8 +228,11 @@ public class MasterGui {
 		controlPanel.add(timeSlider, gbc_timeSlider);
 		
 		refreshSlider = new JSlider();
-		refreshSlider.setMinimum(1);
-		refreshSlider.setMaximum(100); //TODO: CONFIRM AN ACTUAL VALUE FOR THIS
+		refreshSlider.setMinimum(100);
+		refreshSlider.setMaximum(1000);
+		refreshSlider.setMajorTickSpacing(100);
+		refreshSlider.setLabelTable(refreshSlider.createStandardLabels(100));
+		refreshSlider.setPaintLabels(true);
 		refreshSlider.setSnapToTicks(true);
 		refreshSlider.setPaintTicks(true);
 		refreshSlider.addChangeListener(new ChangeListener(){
