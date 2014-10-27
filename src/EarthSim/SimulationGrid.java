@@ -1,8 +1,5 @@
 package EarthSim;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import core.Constants;
 import core.DataCell;
 
@@ -119,6 +116,10 @@ public class SimulationGrid {
 				DataCell east = getCellFromIndex(other.getEastNeighbor(index));
 				DataCell west = getCellFromIndex(other.getWestNeighbor(index));
 
+                /* Add up the temperature of all neighbors scaled by the ratio
+                 * of the length of the connecting side to the total perimeter and
+                 * the ration of the cells surface area to the neighbor's surface
+                 * area. */
 				double newTemperature =
                         (cell.getUpperWidth() * north.getTemperature() / north.getArea()
 						+ cell.getLowerWidth() * south.getTemperature() / south.getArea()
@@ -129,20 +130,6 @@ public class SimulationGrid {
 				cell.setTemperature(newTemperature);
 			}
 		}
-	}
-	
-	/* Get a cell list object from the grid. */
-	public List<DataCell> getCellList() {
-		List<DataCell> list = new ArrayList<DataCell>(mWidth * mHeight);
-		
-		int index = 0;
-		for (int x = 0; x < mWidth; x++) {
-			for (int y = 0; y < mHeight; y++) {
-				list.add(index++, getCellFromIndex(x, y));
-			}
-		}
-		
-		return list;
 	}
 	
 	/* Calculate radiant temperature. */
@@ -162,24 +149,40 @@ public class SimulationGrid {
 						cell.getLongitude(),
 						sunLongitude);
 
-				/* Calculate the heating from the sun */
-				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * 4 * attenuation * 2;
+				/* Calculate the heating from the sun which is:
+				 * - the average temperature on earth
+				 * - times the ratio of the surface area occupied
+				 *   by the cell to the total surface area of the
+				 *   earth
+				 * - times 2 since only half the earth is heated
+				 * - times 8, which is the total attenuation values
+				 *   (integral of cos() from 0 to pi in both lat and
+				 *   long directions).
+				 * - times the attenuation multiplier (between 0 and 1).
+				 */
+				double Th = Constants.AVERAGE_EARTH_TEMPERATURE * beta * 2 * 8 * attenuation;
 
-				/* Calculate cooling. */
+				/* Calculate cooling, which is the fraction of surface
+				 * area of the earth occupied by the cell times the
+				 * average temperature on earth. */
 				double Tc = beta * Constants.AVERAGE_EARTH_TEMPERATURE;
 
+                /* Apply the total temperature change. */
 				cell.setTemperature(cell.getTemperature() + Th - Tc);
 			}
 		}
 	}
 	
-	/* Calculate attenuation. */
+	/* Calculate attenuation of sun's heat for a given grid cell. */
 	private double calculateAttenuation(double lat, double lon, double sunLon) {
         double attn = 0;
+        /* Get the difference in angle between the cell's longitude and the sun's. */
 		double d = Math.abs(lon - sunLon);
+        /* Handle wrap-around case. */
         if (Math.signum(lon) != Math.signum(sunLon)) {
             d = 360 - d;
         }
+        /* Set value greater than zero only if on the day side of the planet. */
 		if (d < 90)
             attn = Math.cos(Math.toRadians(d)) * Math.cos(Math.toRadians(lat));
 		return attn;
