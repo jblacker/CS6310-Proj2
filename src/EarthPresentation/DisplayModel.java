@@ -71,7 +71,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		this.refreshTimer = new Timer(refreshRate, this); //default?
 		this.hasInitative = initiative;
 	}
-	
+
 	public DisplayModel(int height, int width, int refreshRate, Boolean initiative) {
 		this.mapCanvasHeight = height;
 		this.mapCanvasWidth = width;
@@ -490,7 +490,7 @@ public class DisplayModel extends Observable implements Runnable, ActionListener
 		Graphics2D scaledImageGraphics = null;
 		try{
 			ClassLoader cl = getClass().getClassLoader();
-			File file = new File(cl.getResource("world-map.jpg").getFile());
+			File file = new File("./bin/world-map.jpg");
 			BufferedImage map = ImageIO.read(file);
 			scaledImageGraphics = scaledMap.createGraphics();
 			
