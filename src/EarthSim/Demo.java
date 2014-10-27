@@ -21,8 +21,13 @@ public class Demo {
     }
     
     public static String getSyntaxMessage() {
-    	//TODO: Create message on proper usage of arguments for error display;
-    	return null;
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("Allowed arguments are as follows\n:");
+    	sb.append("java EarthSim.Demo [-s] [-p] [-r|-t] [-b #]");
+    	sb.append("-r & -t sent initiative.  They cannot BOTH be used");
+    	sb.append("-s and -p are used to indicate threading.  We recommend that both of these are set");
+    	sb.append("-b # is optional to set a non-default buffer size. (Default is 1)");
+    	return sb.toString();
     }
    
 }
